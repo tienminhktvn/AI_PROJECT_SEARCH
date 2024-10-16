@@ -10,11 +10,12 @@ import pygame
 
 # Path
 tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
-input_board_path = os.path.join(os.getcwd(), 'input')
+standard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
+hard_input_board_path = os.path.join(os.getcwd(), 'input', 'hard')
 
 # Sceen set up (each block is 64 x 64 pixels)
-SCREEN_WIDTH = 14 * 64
-SCREEN_HEIGHT = 10 * 64
+SCREEN_WIDTH = 18 * 64
+SCREEN_HEIGHT = 12 * 64
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Tile Set Image
@@ -29,12 +30,12 @@ def get_board(path):
     return board
 
 # Return a list of boards
-def get_boards():
-    os.chdir(input_board_path)
+def get_boards(mode_path):
+    os.chdir(mode_path)
     list_boards = []
     for file in os.listdir():
         if file.endswith(".txt"):
-            file_path = f"{input_board_path}\\{file}"
+            file_path = f"{mode_path}\\{file}"
             board = get_board(file_path)
             list_boards.append(board)
     return list_boards
@@ -61,10 +62,10 @@ def renderMap(board):
     wall_img = get_tile(tileset_image, 448, 448) 
     
     ## White Space Images
-    blank_space_img = get_tile(tileset_image, 0, 0)
+    black_space_img = get_tile(tileset_image, 0, 0) # Black Image
     floor_img = get_tile(tileset_image, 704, 384)
 
-    ## Switche Places
+    ## Switch Places
     switch_place_img = get_tile(tileset_image, 704, 448)
 
     ## Stones
@@ -74,22 +75,26 @@ def renderMap(board):
 
     player_img = get_tile(tileset_image, 0, 256) 
 
-    # Get the width and height of the map input
+    # Get the width and height of the map input and initial the indent's value
     width = len(board[0])
     height = len(board)
     indent_x = (SCREEN_WIDTH - width * 64) / 2.0
     indent_y = (SCREEN_HEIGHT - height * 64) / 2.0
 
-    # Clear the screen first (e.g., with a black background)
+    # Clear the screen first
     screen.fill((0, 0, 0))  
 
     for i in range(height):
         for j in range(width):
+            # Black Spaces that outside the Walls
+            if board[i][j] == '%':
+                screen.blit(black_space_img, (j * 64 + indent_x, i * 64 + indent_y))
+
             # Walls
             if board[i][j] == '#':
                 screen.blit(wall_img, (j * 64 + indent_x, i * 64 + indent_y))
 
-            # Whitespaces and Floor
+            # Floors inside the Walls
             if board[i][j] in [' ', '@', '$']:
                 screen.blit(floor_img, (j * 64 + indent_x, i * 64 + indent_y))
 
@@ -124,5 +129,5 @@ def game_loop(board):
     pygame.quit()
 
 # Run the command "python gui.py" to run the GUI
-maps = get_boards()
-game_loop(maps[0])
+maps = get_boards(standard_input_board_path)
+game_loop(maps[10])
