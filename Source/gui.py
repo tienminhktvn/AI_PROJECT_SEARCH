@@ -1,5 +1,10 @@
 import os
+import time
 import pygame
+
+# Font 
+pygame.font.init()
+font = pygame.font.SysFont(None, 48)
 
 # Path
 tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
@@ -144,8 +149,42 @@ def render_player(board):
 def render_stones(board):
     indent_x, indent_y = get_IndentX_IndentY(board)
     for stone in stones:
-        screen.blit(stone_1_img, (stone[0] * 64 + indent_x, stone[1] * 64 + indent_y))    
+        stone_x = stone[0] * 64 + indent_x
+        stone_y = stone[1] * 64 + indent_y
 
+        # Get the weight of the stone to draw it upon the image
+        weight = stones[stone]
+
+        if weight > 0 and weight < 30:
+            stone_img = stone_1_img
+        elif weight < 70:
+            stone_img = stone_2_img
+        else:
+            stone_img = stone_3_img
+
+        screen.blit(stone_img, (stone_x, stone_y))
+
+        stone_rect = pygame.Rect(stone_x, stone_y, 64, 64)  
+
+        # Draw circle upon the stone
+        pygame.draw.circle(screen, (0, 0, 0), stone_rect.center, 25) 
+        pygame.draw.circle(screen, (255, 255, 255), stone_rect.center, 23) 
+
+        text = font.render(str(weight), True, (0,0,0))
+        text_rect = text.get_rect(center=stone_rect.center)
+        screen.blit(text, text_rect)
+
+
+# Delay the move based on the weight of the stones
+def movement_delay(weight):
+    if weight > 0 and weight < 30:
+        delay_time = 0
+    elif weight < 70:
+        delay_time = 0.3
+    else:
+        delay_time = 0.7
+    
+    time.sleep(delay_time)
 
 def movement(board, way):
     x = 0
@@ -176,24 +215,29 @@ def movement(board, way):
             player_move = 4
 
         if(node in stones):
+            # Delay the movement based on the weight of the stone
+            movement_delay(stones[node])
+
             old_pos_stone = node
             if (player_move == 1):
-                #Move left
+                # Move left
                 new_pos_stone = (node[x] - 1, node[y])
                 stones[new_pos_stone] = stones.pop(old_pos_stone)
             elif (player_move == 2):
-                #Move up
+                # Move up
                 new_pos_stone = (node[x], node[y] - 1)
                 stones[new_pos_stone] = stones.pop(old_pos_stone)
             elif (player_move == 3):
-                #Move right
+                # Move right
                 new_pos_stone = (node[x] + 1, node[y])
                 stones[new_pos_stone] = stones.pop(old_pos_stone)
             elif (player_move == 4):
-                #Move down
+                # Move down
                 new_pos_stone = (node[x], node[y] + 1)
                 stones[new_pos_stone] = stones.pop(old_pos_stone)
+
             screen.blit(floor_img, (old_pos_stone[0] * 64 + indent_x, old_pos_stone[1] * 64 + indent_y)) # Clear old stone position
+
             render_stones(board) # Draw stone at new position
         
         screen.blit(floor_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y)) # Clear old player position
@@ -205,9 +249,9 @@ def game_loop(board):
     pygame.init()
     pygame.display.set_caption("Ares's Adventure")
 
-    render_map(board) #Create the map for first time
+    render_map(board) # Create the map for first time
     pygame.display.update()  # Update the display
-    movement(board, way_player_go) #Move the player
+    movement(board, way_player_go) # Move the player
 
     running = True
 
@@ -224,9 +268,9 @@ def game_loop(board):
 
 # The first element of 'way_player_go' contains the next position player will go, not current position of player
 # (5,4) => horizontal is 5, Vertical is 4
-way_player_go =[(5, 2), (5, 1), (6,1), (6, 2), (5, 2), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3)  ]
+way_player_go = [(3,4), (3,5), (3,6)]
 
 
 # Run the command "python gui.py" to run the GUI
-map =get_board(os.path.join(standard_input_board_path, 'input01.txt'))
+map = get_board(os.path.join(hard_input_board_path, 'input06.txt'))
 game_loop(map)
