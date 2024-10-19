@@ -3,11 +3,12 @@ import pygame
 
 # Path
 tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
-input_board_path = os.path.join(os.getcwd(), 'input')
+standard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
+hard_input_board_path = os.path.join(os.getcwd(), 'input', 'hard')
 
-# Screen set up (each block is 64 x 64 pixels)
-SCREEN_WIDTH = 14 * 64
-SCREEN_HEIGHT = 10 * 64
+# Sceen set up (each block is 64 x 64 pixels)
+SCREEN_WIDTH = 18 * 64
+SCREEN_HEIGHT = 12 * 64
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Tile Set Image
@@ -24,12 +25,12 @@ def get_board(path):
     return board
 
 # Return a list of boards
-def get_boards():
-    os.chdir(input_board_path)
+def get_boards(mode_path):
+    os.chdir(mode_path)
     list_boards = []
     for file in os.listdir():
         if file.endswith(".txt"):
-            file_path = f"{input_board_path}\\{file}"
+            file_path = f"{mode_path}\\{file}"
             board = get_board(file_path)
             list_boards.append(board)
     return list_boards
@@ -44,7 +45,7 @@ def get_tile(tileset, x, y, width=64, height=64, scale_factor=1):
 wall_img = get_tile(tileset_image, 448, 448) 
 
 ## White Space Images
-blank_space_img = get_tile(tileset_image, 0, 0)
+black_space_img = get_tile(tileset_image, 0, 0) # Black Image
 floor_img = get_tile(tileset_image, 704, 384)
 
 ## Switch Places
@@ -104,6 +105,10 @@ def render_map(board):
 
     for i in range(height):
         for j in range(width):
+            # Black Spaces that outside the Walls
+            if board[i][j] == '%':
+                screen.blit(black_space_img, (j * 64 + indent_x, i * 64 + indent_y))
+
             # Walls
             if board[i][j] == '#':
                 screen.blit(wall_img, (j * 64 + indent_x, i * 64 + indent_y))
@@ -219,8 +224,8 @@ def game_loop(board):
 
 # The first element of 'way_player_go' contains the next position player will go, not current position of player
 # (5,4) => horizontal is 5, Vertical is 4
-way_player_go =[(3, 3), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3), (9, 2), (10, 2), (10, 3)]
+way_player_go =[(5, 2), (5, 1), (6,1), (6, 2), (5, 2), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3)  ]
 
 # Run the command "python gui.py" to run the GUI
-maps = get_boards()
-game_loop(maps[0])
+map =get_board(os.path.join(standard_input_board_path, 'input01.txt'))
+game_loop(map)
