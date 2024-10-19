@@ -226,6 +226,7 @@ def game_loop(board):
 # (5,4) => horizontal is 5, Vertical is 4
 way_player_go =[(5, 2), (5, 1), (6,1), (6, 2), (5, 2), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3)  ]
 
+
 # Run the command "python gui.py" to run the GUI
 map =get_board(os.path.join(standard_input_board_path, 'input01.txt'))
 game_loop(map)
