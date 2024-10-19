@@ -1,4 +1,9 @@
 # main.py
 
-if __name__ == '__main__':
-    pass
+import gui
+
+def main():
+    gui.map_init()
+
+if __name__ == "main":
+    main()
