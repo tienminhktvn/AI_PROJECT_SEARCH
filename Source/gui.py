@@ -2,9 +2,12 @@ import os
 import time
 import pygame
 
+import utils
+from UCS import *
+
 # Font 
 pygame.font.init()
-font = pygame.font.SysFont(None, 48)
+font = pygame.font.SysFont(None, 33)
 
 # Path
 tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
@@ -74,7 +77,10 @@ stones = {}
 weights = []
 
 # Graph 
-graph_way_nodes = {} #conatain nodes 
+graph_way_nodes = {} # conatain nodes 
+
+# Switches Position
+switches_pos = []
 
 
 def get_IndentX_IndentY(board):
@@ -91,14 +97,19 @@ def get_IndentX_IndentY(board):
 def add_connection(board, graph, node, left_pos, up_pos, right_pos, down_pos):
     if node not in graph:
         graph[node] = []
-    if (board[left_pos[0]][left_pos[1]] != '#'):
+    
+    if (board[left_pos[1]][left_pos[0]] != '#'):
         graph[node].append(left_pos)
-    if (board[up_pos[0]][up_pos[1]] != '#'):
+
+    if (board[up_pos[1]][up_pos[0]] != '#'):
         graph[node].append(up_pos)
-    if (board[right_pos[0]][right_pos[1]] != '#'):
+
+    if (board[right_pos[1]][right_pos[0]] != '#'):
         graph[node].append(right_pos)
-    if (board[down_pos[0]][down_pos[1]] != '#'):
-        graph[node].append( down_pos)
+
+    if (board[down_pos[1]][down_pos[0]] != '#'):
+        graph[node].append(down_pos)
+
 
 
 # Render the map for the game
@@ -110,6 +121,10 @@ def render_map(board):
 
     for i in range(height):
         for j in range(width):
+            # Use the add_connection function to point out which action player can move at a particular position
+            if board[i][j] not in ['%', '#']:
+                add_connection(board, graph_way_nodes, (j, i), (j, i-1), (j-1, i), (j, i+1), (j+1, i))
+
             # Black Spaces that outside the Walls
             if board[i][j] == '%':
                 screen.blit(black_space_img, (j * 64 + indent_x, i * 64 + indent_y))
@@ -121,7 +136,6 @@ def render_map(board):
             # Floor
             if board[i][j] in [' ', '@', '$']:
                 screen.blit(floor_img, (j * 64 + indent_x, i * 64 + indent_y))
-                add_connection(board, graph_way_nodes, (i, j), (i, j-1), (i-1, j), (i, j+1), (i+1, j))
 
             # Stones
             if board[i][j] == '$':
@@ -137,6 +151,7 @@ def render_map(board):
             # Switches
             if board[i][j] == '.':
                 screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
+                switches_pos.append((j, i))
 
 
 # Render player
@@ -198,19 +213,19 @@ def movement(board, way):
         old_pos_player = player_pos.copy()
 
         if (player_pos[x] - node[x] == 1):
-            #Move left
+            # Move left
             player_pos[x] -= 1
             player_move = 1
         elif (player_pos[y] - node[y] == 1):
-            #Move up
+            # Move up
             player_pos[y] -= 1
             player_move = 2
         elif (player_pos[x] - node[x] == -1):
-            #Move right
+            # Move right
             player_pos[x] += 1
             player_move = 3
         elif (player_pos[y] - node[y] == -1):
-            #Move down
+            # Move down
             player_pos[y] += 1
             player_move = 4
 
@@ -243,7 +258,15 @@ def movement(board, way):
         screen.blit(floor_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y)) # Clear old player position
         render_player(board) # Draw player at new position  
         pygame.display.update()  # Update the display
-        
+
+
+# Return True = Win, False = Not Win Yet
+def is_win():
+    for stone in stones:
+        if stone not in switches_pos:
+            return False
+    
+    return True
 
 def game_loop(board):
     pygame.init()
@@ -251,10 +274,20 @@ def game_loop(board):
 
     render_map(board) # Create the map for first time
     pygame.display.update()  # Update the display
+
+    # Create the problem instance
+    initial_state = {
+        'player_pos': player_pos,
+        'stones': stones
+    }
+    problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
+
+    # Use the search algorithm
+    # solution = ucs(problem)
+
     movement(board, way_player_go) # Move the player
 
     running = True
-
     while running:
         pygame.display.update()  # Update the display
 
@@ -262,14 +295,20 @@ def game_loop(board):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
+           ## Test for winning ##
+            if is_win():
+                text = font.render("YOU ARE WIN!", True, (0, 0, 0))  # Render the text
+                text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
+                screen.blit(text, text_rect)  # Draw the text on the screen
+                
         
     pygame.quit()
 
 
 # The first element of 'way_player_go' contains the next position player will go, not current position of player
 # (5,4) => horizontal is 5, Vertical is 4
-way_player_go = [(3,4), (3,5), (3,6)]
-
+way_player_go = [(2, 3), (2, 2), (2, 1), (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (4, 5), (4, 6), (3, 6), (2, 6)]
 
 # Run the command "python gui.py" to run the GUI
 map = get_board(os.path.join(hard_input_board_path, 'input06.txt'))
