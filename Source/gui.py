@@ -4,6 +4,7 @@ import pygame
 
 import utils
 from UCS import *
+from A_star import *
 
 # Font 
 pygame.font.init()
@@ -280,12 +281,19 @@ def game_loop(board):
         'player_pos': player_pos,
         'stones': stones
     }
+
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
 
-    # Use the search algorithm
-    # solution = ucs(problem)
+    # Use UCS algorithm
+    way_player_go = a_star(problem)
+    print(way_player_go)
 
-    movement(board, way_player_go) # Move the player
+    if way_player_go:
+        movement(board, way_player_go) # Move the player
+    else:
+        text = font.render("THERE NO NO WAY TO WIN!", True, (0, 0, 0))  # Render the text
+        text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
+        screen.blit(text, text_rect)  # Draw the text on the screen
 
     running = True
     while running:
@@ -298,17 +306,13 @@ def game_loop(board):
             
            ## Test for winning ##
             if is_win():
-                text = font.render("YOU ARE WIN!", True, (0, 0, 0))  # Render the text
+                text = font.render("YOU WIN!", True, (0, 0, 0))  # Render the text
                 text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
                 screen.blit(text, text_rect)  # Draw the text on the screen
                 
         
     pygame.quit()
 
-
-# The first element of 'way_player_go' contains the next position player will go, not current position of player
-# (5,4) => horizontal is 5, Vertical is 4
-way_player_go = [(2, 3), (2, 2), (2, 1), (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (4, 5), (4, 6), (3, 6), (2, 6)]
 
 # Run the command "python gui.py" to run the GUI
 map = get_board(os.path.join(hard_input_board_path, 'input06.txt'))

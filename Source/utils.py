@@ -70,7 +70,7 @@ class Problem:
                     elif player_pos[0] < stone_pos[0] and player_pos[1] == stone_pos[1]:
                         new_stone_pos[0] += 1
 
-                    if self.board[new_stone_pos[1]][new_stone_pos[0]] == '#':
+                    if self.board[new_stone_pos[1]][new_stone_pos[0]] == '#' or (tuple(new_stone_pos) in stones):
                         is_valid = False
                         break
 
@@ -140,7 +140,6 @@ def child_node(problem, node, action, use_heuristic=False):
             # Update the stone's position of the child
             del new_stone_positions[stone]                    # Remove old position
             new_stone_positions[tuple(new_stone_pos)] = cost  # Add new position
-    
     
 
     child_state = {

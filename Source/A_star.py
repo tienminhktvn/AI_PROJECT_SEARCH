@@ -1,27 +1,33 @@
-# A* Search Algorithm
-# def a_star_search(problem):
-#     frontier = []
-#     explored = set()
+from utils import *
+import heapq
 
-#     start_node = Node(problem.initial_state, cost=0, heuristic=heuristic(problem.initial_state, problem))
-#     heapq.heappush(frontier, start_node)
+# A* Search (UCS) Algorithm
+def a_star(problem):
+    start_node = Node(problem.initial_state)
 
-#     while frontier:
-#         node = heapq.heappop(frontier)
+    frontier = []
+    explored = set()
 
-#         if problem.goal_test(node.state):
-#             return solution(node)
+    heapq.heappush(frontier, (start_node.cost, start_node))
 
-#         explored.add(node.state)
+    while frontier:
+        current_cost, node = heapq.heappop(frontier)
 
-#         for action in problem.actions(node.state):
-#             new_state = action
-#             new_cost = node.cost + 1  # Adjust this based on the game logic
-#             new_heuristic = heuristic(new_state, problem)
-            
-#             child_node = Node(new_state, parent=node, cost=new_cost, heuristic=new_heuristic)
+        if problem.goal_test(node.state):
+            return solution(node)
+        
+        explored.add(str(node.state))
 
-#             if child_node.state not in explored and child_node not in frontier:
-#                 heapq.heappush(frontier, child_node)
+        for action in problem.actions(node.state):
+            child = child_node(problem, node, action, use_heuristic=True)
+
+            if str(child.state) not in explored:
+                heapq.heappush(frontier, (child.cost, child))
+            else:
+                for i, (existing_cost, existing_node) in enumerate(frontier):
+                    if existing_node.state == child.state and child.cost < existing_cost:
+                        frontier[i] = (child.cost, child) 
+                        heapq.heapify(frontier)
+                        break
     
-#     return None  # No solution found
+    return None
