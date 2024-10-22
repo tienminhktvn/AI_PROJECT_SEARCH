@@ -18,7 +18,7 @@ class Node:
         self.cost = cost                        # g(n)
         self.heuristic = heuristic              # Heuristic h(n)
         self.f = self.cost + self.heuristic     # f(n) = g(n) + h(n)
-
+    
     def __lt__(self, other):
         return self.f < other.f
 
