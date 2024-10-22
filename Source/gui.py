@@ -291,8 +291,12 @@ def game_loop(board):
 
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
 
-    # Use bfs algorithm
-    way_player_go = bfs(problem)
+    # Use algorithm
+    start = time.time()
+    way_player_go = ucs(problem)
+    end = time.time()
+    elapsed = end - start
+    print(f'Time taken: {elapsed:.6f} seconds')
     print(way_player_go)
 
     if way_player_go:

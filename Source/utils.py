@@ -10,6 +10,7 @@ A state or initial_state is a dict of player_pos, stone's positions. For example
     }
 """
 
+
 class Node:
     def __init__(self, state, parent=None, action=None, cost=0, heuristic=0):
         self.state = state
@@ -21,6 +22,16 @@ class Node:
     
     def __lt__(self, other):
         return self.f < other.f
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
+
+    # Allow the Node object to be used as a key in a dict
+    def __hash__(self):
+        return hash((
+            tuple(self.state['player_pos']),
+            frozenset(self.state['stones'].items())
+        ))
 
 # Caculate the Mahhattan distance between two postition
 def manhattan_distance(pos1, pos2):
@@ -92,15 +103,17 @@ class Problem:
             # Find the closet switch for the stone
             for switch in self.switches_pos:
                 if switch not in assigned_switches:
-                    distance = manhattan_distance(stone, switch)
+                    distance = manhattan_distance(stone, switch) * state['stones'][stone]             
+
                     if distance < min_distance:
                         min_distance = distance
                         closest_switch = switch
 
             assigned_switches.append(closest_switch)
-            total_distance += min_distance
+            total_distance += min_distance 
 
         return total_distance
+
 
 def child_node(problem, node, action, use_heuristic=False):
     # g(n) cost default is 1, if push the stone then cost = weight of stone
@@ -113,7 +126,6 @@ def child_node(problem, node, action, use_heuristic=False):
         heuristic = 0
     else:
         heuristic = problem.heuristic(node.state)
-
 
     # Check if push the stone or not
     for stone in stones:
