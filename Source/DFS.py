@@ -4,7 +4,7 @@ def dfs(problem):
     start_node = Node(problem.initial_state)
 
     frontier = []
-    explored = set()
+    explored = {start_node: 'visited'}
 
     frontier.append(start_node)
 
@@ -14,12 +14,12 @@ def dfs(problem):
         if problem.goal_test(node.state):
             return solution(node)
         
-        explored.add(str(node.state))
+        explored[node] = 'visited'
 
         for action in problem.actions(node.state):
             child = child_node(problem, node, action)
 
-            if str(child.state) not in explored:
+            if child not in explored:
                 frontier.append(child)
     
     return None
