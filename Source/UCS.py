@@ -6,7 +6,7 @@ def ucs(problem):
     start_node = Node(problem.initial_state)
 
     frontier = [(start_node.f, start_node)]
-    explored = {start_node: (0, None)}
+    explored = {str(start_node.state): (0, None)}
 
     while frontier:
         current_cost, node = heapq.heappop(frontier)

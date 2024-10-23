@@ -214,7 +214,7 @@ def movement(board, way):
     y = 1
     player_move = 0 # move left: 1, move up: 2, move right: 3, move down: 4
     indent_x, indent_y = get_IndentX_IndentY(board)
-    delay_time = 1000 # Delay time between each move
+    delay_time = 500 # Delay time between each move
 
     for node in way:
         pygame.time.delay(delay_time)  # Delay time between each move
@@ -293,7 +293,7 @@ def game_loop(board):
 
     # Use algorithm
     start = time.time()
-    way_player_go = ucs(problem)
+    way_player_go = a_star(problem)
     end = time.time()
     elapsed = end - start
     print(f'Time taken: {elapsed:.6f} seconds')
@@ -325,5 +325,5 @@ def game_loop(board):
 
 
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(hard_input_board_path, 'input01.txt'))
+map = get_board(os.path.join(standard_input_board_path, 'input14.txt'))
 game_loop(map)
