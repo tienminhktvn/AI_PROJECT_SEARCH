@@ -11,9 +11,10 @@ pygame.font.init()
 font = pygame.font.SysFont(None, 33)
 
 # Path
-tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
+tile_image_path = os.path.join('Assets', 'tileset.png')
 standard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
-hard_input_board_path = os.path.join(os.getcwd(), 'input', 'hard')
+hard_input_board_path = os.path.join(os.getcwd(),'Source', 'input', 'hard')
+input_file_name = 'input02.txt'
 
 # Sceen set up (each block is 64 x 64 pixels)
 SCREEN_WIDTH = 18 * 64
@@ -304,7 +305,7 @@ def game_loop(board):
             if event.type == pygame.QUIT:
                 running = False
             
-           ## Test for winning ##
+            ## Test for winning ##
             if is_win():
                 text = font.render("YOU WIN!", True, (0, 0, 0))  # Render the text
                 text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
@@ -315,5 +316,5 @@ def game_loop(board):
 
 
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(hard_input_board_path, 'input06.txt'))
+map = get_board(os.path.join(hard_input_board_path, input_file_name))
 game_loop(map)
