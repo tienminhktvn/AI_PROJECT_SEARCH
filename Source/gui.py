@@ -5,16 +5,17 @@ import pygame
 import utils
 from UCS import *
 from A_star import *
+from BFS import *
+from DFS import *
 
 # Font 
 pygame.font.init()
 font = pygame.font.SysFont(None, 33)
 
 # Path
-tile_image_path = os.path.join('Assets', 'tileset.png')
+tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
 standard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
-hard_input_board_path = os.path.join(os.getcwd(),'Source', 'input', 'hard')
-input_file_name = 'input02.txt'
+hard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
 
 # Sceen set up (each block is 64 x 64 pixels)
 SCREEN_WIDTH = 18 * 64
@@ -100,18 +101,20 @@ def add_connection(board, graph, node, left_pos, up_pos, right_pos, down_pos):
     if node not in graph:
         graph[node] = []
     
-    if (board[left_pos[1]][left_pos[0]] != '#'):
-        graph[node].append(left_pos)
+    if (left_pos[0] >= 0):
+        if (board[left_pos[1]][left_pos[0]] != '#'):
+            graph[node].append(left_pos)
 
-    if (board[up_pos[1]][up_pos[0]] != '#'):
-        graph[node].append(up_pos)
+    if (up_pos[1] >= 0):
+        if (board[up_pos[1]][up_pos[0]] != '#'):
+            graph[node].append(up_pos)
+    if (right_pos[0] < len(board[0])):
+        if (board[right_pos[1]][right_pos[0]] != '#'):
+            graph[node].append(right_pos)
 
-    if (board[right_pos[1]][right_pos[0]] != '#'):
-        graph[node].append(right_pos)
-
-    if (board[down_pos[1]][down_pos[0]] != '#'):
-        graph[node].append(down_pos)
-
+    if (down_pos[1] < len(board)):
+        if (board[down_pos[1]][down_pos[0]] != '#'):
+            graph[node].append(down_pos)
 
 
 # Render the map for the game
@@ -125,7 +128,7 @@ def render_map(board):
         for j in range(width):
             # Use the add_connection function to point out which action player can move at a particular position
             if board[i][j] not in ['%', '#']:
-                add_connection(board, graph_way_nodes, (j, i), (j, i-1), (j-1, i), (j, i+1), (j+1, i))
+                add_connection(board, graph_way_nodes, (j, i), (j-1, i), (j, i-1), (j+1, i), (j, i+1))
 
             # Black Spaces that outside the Walls
             if board[i][j] == '%':
@@ -203,12 +206,18 @@ def movement_delay(weight):
     
     time.sleep(delay_time)
 
+# Render switches
+def render_switches(board,old_pos_player):
+    indent_x, indent_y = get_IndentX_IndentY(board)
+    if(tuple(old_pos_player) in switches_pos):
+        screen.blit(switch_place_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y))
+
 def movement(board, way):
     x = 0
     y = 1
     player_move = 0 # move left: 1, move up: 2, move right: 3, move down: 4
     indent_x, indent_y = get_IndentX_IndentY(board)
-    delay_time = 1000 # Delay time between each move
+    delay_time = 500 # Delay time between each move
 
     for node in way:
         pygame.time.delay(delay_time)  # Delay time between each move
@@ -254,10 +263,10 @@ def movement(board, way):
                 stones[new_pos_stone] = stones.pop(old_pos_stone)
 
             screen.blit(floor_img, (old_pos_stone[0] * 64 + indent_x, old_pos_stone[1] * 64 + indent_y)) # Clear old stone position
-
             render_stones(board) # Draw stone at new position
         
         screen.blit(floor_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y)) # Clear old player position
+        render_switches(board, old_pos_player) # Draw switch at new player position if exist
         render_player(board) # Draw player at new position  
         pygame.display.update()  # Update the display
 
@@ -285,8 +294,12 @@ def game_loop(board):
 
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
 
-    # Use UCS algorithm
-    way_player_go = a_star(problem)
+    # Use algorithm
+    start = time.time()
+    way_player_go = dfs(problem)
+    end = time.time()
+    elapsed = end - start
+    print(f'Time taken: {elapsed:.6f} seconds')
     print(way_player_go)
 
     if way_player_go:
@@ -310,11 +323,11 @@ def game_loop(board):
                 text = font.render("YOU WIN!", True, (0, 0, 0))  # Render the text
                 text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
                 screen.blit(text, text_rect)  # Draw the text on the screen
-                
         
     pygame.quit()
 
 
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(hard_input_board_path, input_file_name))
+map = get_board(os.path.join(standard_input_board_path, 'input01.txt'))
 game_loop(map)
+

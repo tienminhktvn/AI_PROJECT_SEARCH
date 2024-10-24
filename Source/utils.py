@@ -20,9 +20,19 @@ class Node:
         self.cost = cost                        # g(n)
         self.heuristic = heuristic              # Heuristic h(n)
         self.f = self.cost + self.heuristic     # f(n) = g(n) + h(n)
-
+    
     def __lt__(self, other):
         return self.f < other.f
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.state == other.state
+
+    # Allow the Node object to be used as a key in a dict
+    def __hash__(self):
+        return hash((
+            tuple(self.state['player_pos']),
+            frozenset(self.state['stones'].items())
+        ))
 
 # Caculate the Mahhattan distance between two postition
 def manhattan_distance(pos1, pos2):
@@ -94,15 +104,17 @@ class Problem:
             # Find the closet switch for the stone
             for switch in self.switches_pos:
                 if switch not in assigned_switches:
-                    distance = manhattan_distance(stone, switch)
+                    distance = manhattan_distance(stone, switch) * state['stones'][stone]             
+
                     if distance < min_distance:
                         min_distance = distance
                         closest_switch = switch
 
             assigned_switches.append(closest_switch)
-            total_distance += min_distance
+            total_distance += min_distance 
 
         return total_distance
+
 
 def child_node(problem, node, action, use_heuristic=False):
     # g(n) cost default is 1, if push the stone then cost = weight of stone
@@ -115,7 +127,6 @@ def child_node(problem, node, action, use_heuristic=False):
         heuristic = 0
     else:
         heuristic = problem.heuristic(node.state)
-
 
     # Check if push the stone or not
     for stone in stones:
@@ -210,7 +221,7 @@ def calculate_total_weight(solution_path, problem):
 
     return total_weight
 
-def save_output_to_file(input_file_name, solution_path, total_weight_pushed, num_steps, nodes_generated, total_time_ms, peak_memory_mb, problem):
+def save_output_to_file(input_file_name, algorythm_name, solution_path, total_weight_pushed, num_steps, nodes_generated, total_time_ms, peak_memory_mb, problem):
     # Extract the suffix from the input file name (e.g., xx from inputxx.txt)
     file_suffix = os.path.splitext(os.path.basename(input_file_name))[0].replace("input", "")
     output_file_name = f"output{file_suffix}.txt"
@@ -225,6 +236,38 @@ def save_output_to_file(input_file_name, solution_path, total_weight_pushed, num
     
     # Write the results to the output file
     with open(output_file_path, 'w') as file:
-        file.write("A*\n")
+        file.write(algorythm_name + "\n")
         file.write(f"Steps: {num_steps}, Weight: {total_weight_pushed}, Node: {nodes_generated}, Time (ms): {total_time_ms:.2f}, Memory (MB): {peak_memory_mb:.2f}\n")
-        file.write(''.join(generate_action_string(solution_path, problem)) + '\n')  # Sequence of actions
+        file.write(''.join(generate_action_string(solution_path, problem)) + '\n')
+        
+
+def compute_total_weight_pushed(solution_path, start_node):
+    total_weight_pushed = 0
+    state = start_node.state.copy()  
+    stones = state['stones'].copy() 
+
+    for action in solution_path:
+        player_pos = state['player_pos']
+
+        if tuple(action) in stones:
+            stone_pos = tuple(action)
+            total_weight_pushed += stones[stone_pos]
+            
+            new_stone_pos = list(stone_pos)
+
+            if player_pos[0] == stone_pos[0] and player_pos[1] > stone_pos[1]:
+                new_stone_pos[1] -= 1  
+            elif player_pos[0] == stone_pos[0] and player_pos[1] < stone_pos[1]:
+                new_stone_pos[1] += 1  
+            elif player_pos[0] > stone_pos[0] and player_pos[1] == stone_pos[1]:
+                new_stone_pos[0] -= 1  
+            elif player_pos[0] < stone_pos[0] and player_pos[1] == stone_pos[1]:
+                new_stone_pos[0] += 1
+
+            stones[tuple(new_stone_pos)] = stones.pop(stone_pos)
+
+        state['player_pos'] = tuple(action) 
+
+    return total_weight_pushed
+
+
