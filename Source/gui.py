@@ -101,17 +101,20 @@ def add_connection(board, graph, node, left_pos, up_pos, right_pos, down_pos):
     if node not in graph:
         graph[node] = []
     
-    if (board[left_pos[1]][left_pos[0]] != '#'):
-        graph[node].append(left_pos)
+    if (left_pos[0] >= 0):
+        if (board[left_pos[1]][left_pos[0]] != '#'):
+            graph[node].append(left_pos)
 
-    if (board[up_pos[1]][up_pos[0]] != '#'):
-        graph[node].append(up_pos)
+    if (up_pos[1] >= 0):
+        if (board[up_pos[1]][up_pos[0]] != '#'):
+            graph[node].append(up_pos)
+    if (right_pos[0] < len(board[0])):
+        if (board[right_pos[1]][right_pos[0]] != '#'):
+            graph[node].append(right_pos)
 
-    if (board[right_pos[1]][right_pos[0]] != '#'):
-        graph[node].append(right_pos)
-
-    if (board[down_pos[1]][down_pos[0]] != '#'):
-        graph[node].append(down_pos)
+    if (down_pos[1] < len(board)):
+        if (board[down_pos[1]][down_pos[0]] != '#'):
+            graph[node].append(down_pos)
 
 
 # Render the map for the game
@@ -125,7 +128,7 @@ def render_map(board):
         for j in range(width):
             # Use the add_connection function to point out which action player can move at a particular position
             if board[i][j] not in ['%', '#']:
-                add_connection(board, graph_way_nodes, (j, i), (j, i-1), (j-1, i), (j, i+1), (j+1, i))
+                add_connection(board, graph_way_nodes, (j, i), (j-1, i), (j, i-1), (j+1, i), (j, i+1))
 
             # Black Spaces that outside the Walls
             if board[i][j] == '%':
@@ -325,5 +328,5 @@ def game_loop(board):
 
 
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(hard_input_board_path, 'input06.txt'))
+map = get_board(os.path.join(standard_input_board_path, 'input19.txt'))
 game_loop(map)
