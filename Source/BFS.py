@@ -4,7 +4,7 @@ def bfs(problem):
     start_node = Node(problem.initial_state)
 
     frontier = []
-    explored = {start_node: 'visited'}
+    explored = set()
 
     frontier.append(start_node)
 
@@ -14,12 +14,14 @@ def bfs(problem):
         if problem.goal_test(node.state):
             return solution(node)
         
-        explored[node] = 'visited'
+        explored.add(node)
 
         for action in problem.actions(node.state):
             child = child_node(problem, node, action)
 
-            if child not in explored:
+            if child not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return solution(child)
                 frontier.append(child)
     
     return None
