@@ -1,3 +1,8 @@
+import os
+import time
+import tracemalloc
+import heapq
+
 """
 A state or initial_state is a dict of player_pos, stone's positions. For example:
     initial_state = {
@@ -171,3 +176,119 @@ def solution(node):
         node = node.parent
     path.reverse()
     return path
+
+# Add movement actions to output
+def generate_action_string(path, problem):
+    action_string = []
+    state = problem.initial_state
+
+    for action in path:
+        player_pos, stones = state['player_pos'], state['stones']
+
+        # Determine if it's a movement or a push action
+        if tuple(action) in stones:
+            stone_pos = action
+            if player_pos[0] == stone_pos[0] and player_pos[1] > stone_pos[1]:
+                action_string.append('U')
+            elif player_pos[0] == stone_pos[0] and player_pos[1] < stone_pos[1]:
+                action_string.append('D')
+            elif player_pos[0] > stone_pos[0] and player_pos[1] == stone_pos[1]:
+                action_string.append('L')
+            elif player_pos[0] < stone_pos[0] and player_pos[1] == stone_pos[1]:
+                action_string.append('R')
+        else:
+            if player_pos[0] == action[0] and player_pos[1] > action[1]:
+                action_string.append('u')
+            elif player_pos[0] == action[0] and player_pos[1] < action[1]:
+                action_string.append('d')
+            elif player_pos[0] > action[0] and player_pos[1] == action[1]:
+                action_string.append('l')
+            elif player_pos[0] < action[0] and player_pos[1] == action[1]:
+                action_string.append('r')
+
+        # Update state for next action
+        state = child_node(problem, Node(state), action).state
+
+    return action_string
+
+# Calculate total weight in final step
+def calculate_total_weight(solution_path, problem):
+    total_weight = 0
+    state = problem.initial_state
+
+    for action in solution_path:
+        player_pos, stones = state['player_pos'], state['stones']
+
+        if tuple(action) in stones:
+            stone_pos = action
+            total_weight += stones[stone_pos]
+
+        state = child_node(problem, Node(state), action).state
+
+    return total_weight
+
+def save_output_to_file(input_file_name, algorythm_name, solution_path, total_weight_pushed, num_steps, nodes_generated, total_time_ms, peak_memory_mb, problem):
+    # Extract the suffix from the input file name (e.g., xx from inputxx.txt)
+    file_suffix = os.path.splitext(os.path.basename(input_file_name))[0].replace("input", "")
+    output_file_name = f"output{file_suffix}.txt"
+    
+    # Create the output directory if it doesn't exist
+    output_directory = "output"
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    
+    # Full path for the output file
+    output_file_path = os.path.join(output_directory, output_file_name)
+    
+    # Write the results to the output file
+    with open(output_file_path, 'w') as file:
+        file.write(algorythm_name + "\n")
+        file.write(f"Steps: {num_steps}, Weight: {total_weight_pushed}, Node: {nodes_generated}, Time (ms): {total_time_ms:.2f}, Memory (MB): {peak_memory_mb:.2f}\n")
+        file.write(''.join(generate_action_string(solution_path, problem)) + '\n')
+        
+
+def compute_total_weight_pushed(solution_path, start_node):
+    total_weight_pushed = 0
+    state = start_node.state.copy()  
+    stones = state['stones'].copy() 
+
+    for action in solution_path:
+        player_pos = state['player_pos']
+
+        if tuple(action) in stones:
+            stone_pos = tuple(action)
+            total_weight_pushed += stones[stone_pos]
+            
+            new_stone_pos = list(stone_pos)
+
+            if player_pos[0] == stone_pos[0] and player_pos[1] > stone_pos[1]:
+                new_stone_pos[1] -= 1  
+            elif player_pos[0] == stone_pos[0] and player_pos[1] < stone_pos[1]:
+                new_stone_pos[1] += 1  
+            elif player_pos[0] > stone_pos[0] and player_pos[1] == stone_pos[1]:
+                new_stone_pos[0] -= 1  
+            elif player_pos[0] < stone_pos[0] and player_pos[1] == stone_pos[1]:
+                new_stone_pos[0] += 1
+
+            stones[tuple(new_stone_pos)] = stones.pop(stone_pos)
+
+        state['player_pos'] = tuple(action) 
+
+    return total_weight_pushed
+
+def process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem):
+    solution_path = solution(node)
+    
+    end_time = time.time()
+    current, peak_memory = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    
+    num_steps = len(solution_path)
+    total_time_ms = (end_time - start_time) * 1000  
+    peak_memory_mb = peak_memory / (1024 * 1024)  
+    
+    total_weight_pushed = compute_total_weight_pushed(solution_path, start_node)
+    
+    save_output_to_file('input02.txt', algorithm_name, solution_path, total_weight_pushed, num_steps, nodes_generated, total_time_ms, peak_memory_mb, problem)
+
+    return solution_path
