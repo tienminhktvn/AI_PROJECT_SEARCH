@@ -1,21 +1,29 @@
 from utils import *
-import heapq
 
 # A* Search (UCS) Algorithm
 def a_star(problem):
     start_node = Node(problem.initial_state)
+    algorithm_name = 'A*'
 
+    tracemalloc.start() 
+    start_time = time.time()
+    
     frontier = [(0, start_node)]
     explored = {start_node: (0, None)}
+    
+    total_weight_pushed = 0 
+    nodes_generated = 0  
 
     while frontier:
         current_cost, node = heapq.heappop(frontier)
 
         if problem.goal_test(node.state):
-            return solution(node)
+            
+            return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem)
 
         for action in problem.actions(node.state):
             child = child_node(problem, node, action, use_heuristic=True)
+            nodes_generated += 1
 
             if child not in explored or child.f < explored[child][0]:
                 explored[child] = (child.f, node)

@@ -296,7 +296,7 @@ def game_loop(board):
 
     # Use algorithm
     start = time.time()
-    way_player_go = bfs(problem)
+    way_player_go = a_star(problem)
     end = time.time()
     elapsed = end - start
     print(f'Time taken: {elapsed:.6f} seconds')
@@ -318,7 +318,7 @@ def game_loop(board):
             if event.type == pygame.QUIT:
                 running = False
             
-           ## Test for winning ##
+        ## Test for winning ##
             if is_win():
                 text = font.render("YOU WIN!", True, (0, 0, 0))  # Render the text
                 text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
@@ -328,5 +328,5 @@ def game_loop(board):
 
 
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(hard_input_board_path, 'input08.txt'))
+map = get_board(os.path.join(standard_input_board_path, 'input01.txt'))
 game_loop(map)
