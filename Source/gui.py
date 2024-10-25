@@ -296,11 +296,11 @@ def game_loop(board):
 
     # Use algorithm
     start = time.time()
-    way_player_go = dfs(problem)
+    way_player_go = bfs(problem)
     end = time.time()
     elapsed = end - start
     print(f'Time taken: {elapsed:.6f} seconds')
-    print(way_player_go)
+    # print(way_player_go)
 
     if way_player_go:
         movement(board, way_player_go) # Move the player
@@ -328,5 +328,5 @@ def game_loop(board):
 
 
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(standard_input_board_path, 'input19.txt'))
+map = get_board(os.path.join(hard_input_board_path, 'input08.txt'))
 game_loop(map)
