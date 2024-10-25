@@ -12,13 +12,15 @@ A state or initial_state is a dict of player_pos, stone's positions. For example
 
 
 class Node:
-    def __init__(self, state, parent=None, action=None, cost=0, heuristic=0):
+    def __init__(self, state, parent=None, action=None, cost=0, heuristic=0, depth=0):
         self.state = state
         self.parent = parent
         self.action = action
         self.cost = cost                        # g(n)
         self.heuristic = heuristic              # Heuristic h(n)
         self.f = self.cost + self.heuristic     # f(n) = g(n) + h(n)
+        self.depth = depth
+        
     
     def __lt__(self, other):
         return self.f < other.f
