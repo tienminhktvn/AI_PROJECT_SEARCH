@@ -146,17 +146,17 @@ def render_map(board):
             if board[i][j] == '$':
                 stones[(j, i)] = weights.pop(0)
                 render_stones(board)
-                
+
+            # Switches
+            if board[i][j] in ['.', '+']:
+                screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
+                switches_pos.append((j, i))
+
             # Player
-            if board[i][j] == '@':
+            if board[i][j] in ['@', '+']:
                 player_pos[0] = j
                 player_pos[1] = i
                 render_player(board)
-
-            # Switches
-            if board[i][j] == '.':
-                screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
-                switches_pos.append((j, i))
 
 
 # Render player
@@ -296,7 +296,7 @@ def game_loop(board):
 
     # Use algorithm
     start = time.time()
-    way_player_go = a_star(problem)
+    way_player_go = ucs(problem)
     end = time.time()
     elapsed = end - start
     print(f'Time taken: {elapsed:.6f} seconds')
@@ -328,5 +328,5 @@ def game_loop(board):
 
 
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(standard_input_board_path, 'input01.txt'))
+map = get_board(os.path.join(standard_input_board_path, 'input17.txt'))
 game_loop(map)
