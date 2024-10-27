@@ -1,6 +1,7 @@
 import os
-import time
 import pygame
+import threading
+import time
 
 import utils
 from UCS import *
@@ -15,7 +16,7 @@ font = pygame.font.SysFont(None, 33)
 # Path
 tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
 standard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
-hard_input_board_path = os.path.join(os.getcwd(), 'input', 'hard')
+hard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
 
 # Sceen set up (each block is 64 x 64 pixels)
 SCREEN_WIDTH = 18 * 64
@@ -85,6 +86,10 @@ graph_way_nodes = {} # conatain nodes
 # Switches Position
 switches_pos = []
 
+# Status
+is_running = False
+is_paused = False
+is_calculating = True
 
 def get_IndentX_IndentY(board):
     # Get the width and height of the map input
@@ -120,9 +125,11 @@ def add_connection(board, graph, node, left_pos, up_pos, right_pos, down_pos):
 # Render the map for the game
 def render_map(board):
     indent_x, indent_y = get_IndentX_IndentY(board)
-    screen.fill((0, 0, 0)) # Clear the screen first (e.g., with a black background)
+    screen.fill((0, 0, 0)) 
     width = len(board[0])
     height = len(board)
+
+    weight_index = 0 
 
     for i in range(height):
         for j in range(width):
@@ -130,7 +137,7 @@ def render_map(board):
             if board[i][j] not in ['%', '#']:
                 add_connection(board, graph_way_nodes, (j, i), (j-1, i), (j, i-1), (j+1, i), (j, i+1))
 
-            # Black Spaces that outside the Walls
+            # Black Spaces that are outside the Walls
             if board[i][j] == '%':
                 screen.blit(black_space_img, (j * 64 + indent_x, i * 64 + indent_y))
 
@@ -144,19 +151,23 @@ def render_map(board):
 
             # Stones
             if board[i][j] == '$':
-                stones[(j, i)] = weights.pop(0)
+                if weight_index < len(weights):
+                    stones[(j, i)] = weights[weight_index]  
+                    weight_index += 1  
                 render_stones(board)
-
-            # Switches
-            if board[i][j] in ['.', '+']:
-                screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
-                switches_pos.append((j, i))
-
+                
             # Player
-            if board[i][j] in ['@', '+']:
+            if board[i][j] == '@':
                 player_pos[0] = j
                 player_pos[1] = i
                 render_player(board)
+
+            # Switches
+            if board[i][j] == '.':
+                screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
+                switches_pos.append((j, i))
+
+
 
 
 # Render player
@@ -200,78 +211,117 @@ def movement_delay(weight):
     if weight > 0 and weight < 30:
         delay_time = 0
     elif weight < 70:
-        delay_time = 0.3
+        delay_time = 300
     else:
-        delay_time = 0.7
+        delay_time = 700
     
-    time.sleep(delay_time)
+    pygame.time.wait(delay_time)
 
 # Render switches
 def render_switches(board,old_pos_player):
     indent_x, indent_y = get_IndentX_IndentY(board)
     if(tuple(old_pos_player) in switches_pos):
         screen.blit(switch_place_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y))
+        
+        
+        
+# Button size
+BUTTON_WIDTH = 100
+BUTTON_HEIGHT = 50
 
-def movement(board, way):
+# Button position
+START_BUTTON_POSITION = (50, 50)  
+PAUSE_BUTTON_POSITION = (50, 110) 
+RESET_BUTTON_POSITION = (50, 170) 
+
+def render_buttons():
+
+    pygame.draw.rect(screen, (0, 255, 0), (START_BUTTON_POSITION[0], START_BUTTON_POSITION[1], BUTTON_WIDTH, BUTTON_HEIGHT))
+    start_text = font.render("Start", True, (0, 0, 0))
+    screen.blit(start_text, (START_BUTTON_POSITION[0] + 10, START_BUTTON_POSITION[1] + 10))
+
+
+    pygame.draw.rect(screen, (255, 255, 0), (PAUSE_BUTTON_POSITION[0], PAUSE_BUTTON_POSITION[1], BUTTON_WIDTH, BUTTON_HEIGHT))
+    pause_text = font.render("Pause", True, (0, 0, 0))
+    screen.blit(pause_text, (PAUSE_BUTTON_POSITION[0] + 10, PAUSE_BUTTON_POSITION[1] + 10))
+
+
+    pygame.draw.rect(screen, (255, 0, 0), (RESET_BUTTON_POSITION[0], RESET_BUTTON_POSITION[1], BUTTON_WIDTH, BUTTON_HEIGHT))
+    reset_text = font.render("Reset", True, (0, 0, 0))
+    screen.blit(reset_text, (RESET_BUTTON_POSITION[0] + 10, RESET_BUTTON_POSITION[1] + 10))
+    
+def render_status_text(text):
+    """Hàm hiển thị dòng trạng thái ở góc màn hình."""
+    status_text = font.render(text, True, (255, 255, 255))  
+    screen.blit(status_text, (SCREEN_WIDTH - 150, 20)) 
+    
+def calculation_animation():
+    global is_calculating
+    dot_count = 0
+    max_dots = 3 
+
+    while is_calculating:
+        # Create the loading text with dots
+        loading_text = "Calculating" + "." * dot_count
+        render_status_text(loading_text)  # Function to render text on the screen
+        pygame.display.update()
+        
+        dot_count = (dot_count + 1) % (max_dots + 1) 
+        time.sleep(0.5) 
+
+
+def movement(board, node):
     x = 0
     y = 1
-    player_move = 0 # move left: 1, move up: 2, move right: 3, move down: 4
+    player_move = 0  # move left: 1, move up: 2, move right: 3, move down: 4
     indent_x, indent_y = get_IndentX_IndentY(board)
-    delay_time = 500 # Delay time between each move
+    delay_time = 500  # Delay time between each move
 
-    for node in way:
-        pygame.time.delay(delay_time)  # Delay time between each move
-        old_pos_player = player_pos.copy()
+    old_pos_player = player_pos.copy()
 
-        if (player_pos[x] - node[x] == 1):
-            # Move left
-            player_pos[x] -= 1
-            player_move = 1
-        elif (player_pos[y] - node[y] == 1):
-            # Move up
-            player_pos[y] -= 1
-            player_move = 2
-        elif (player_pos[x] - node[x] == -1):
-            # Move right
-            player_pos[x] += 1
-            player_move = 3
-        elif (player_pos[y] - node[y] == -1):
-            # Move down
-            player_pos[y] += 1
-            player_move = 4
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            return
 
-        if(node in stones):
-            # Delay the movement based on the weight of the stone
-            movement_delay(stones[node])
+    pygame.time.delay(delay_time)
 
-            old_pos_stone = node
-            if (player_move == 1):
-                # Move left
-                new_pos_stone = (node[x] - 1, node[y])
-                stones[new_pos_stone] = stones.pop(old_pos_stone)
-            elif (player_move == 2):
-                # Move up
-                new_pos_stone = (node[x], node[y] - 1)
-                stones[new_pos_stone] = stones.pop(old_pos_stone)
-            elif (player_move == 3):
-                # Move right
-                new_pos_stone = (node[x] + 1, node[y])
-                stones[new_pos_stone] = stones.pop(old_pos_stone)
-            elif (player_move == 4):
-                # Move down
-                new_pos_stone = (node[x], node[y] + 1)
-                stones[new_pos_stone] = stones.pop(old_pos_stone)
+    if (player_pos[x] - node[x] == 1):
+        player_pos[x] -= 1
+        player_move = 1
+    elif (player_pos[y] - node[y] == 1):
+        player_pos[y] -= 1
+        player_move = 2
+    elif (player_pos[x] - node[x] == -1):
+        player_pos[x] += 1
+        player_move = 3
+    elif (player_pos[y] - node[y] == -1):
+        player_pos[y] += 1
+        player_move = 4
 
-            screen.blit(floor_img, (old_pos_stone[0] * 64 + indent_x, old_pos_stone[1] * 64 + indent_y)) # Clear old stone position
-            render_stones(board) # Draw stone at new position
-        
-        screen.blit(floor_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y)) # Clear old player position
-        render_switches(board, old_pos_player) # Draw switch at new player position if exist
-        render_player(board) # Draw player at new position  
-        pygame.display.update()  # Update the display
+    if node in stones:
+        movement_delay(stones[node])
+
+        old_pos_stone = node
+        if player_move == 1:
+            new_pos_stone = (node[x] - 1, node[y]) 
+        elif player_move == 2:
+            new_pos_stone = (node[x], node[y] - 1)  
+        elif player_move == 3:
+            new_pos_stone = (node[x] + 1, node[y])  
+        elif player_move == 4:
+            new_pos_stone = (node[x], node[y] + 1) 
+
+        stones[new_pos_stone] = stones.pop(old_pos_stone)
+        screen.blit(floor_img, (old_pos_stone[0] * 64 + indent_x, old_pos_stone[1] * 64 + indent_y))  
+        render_stones(board)  
+
+    screen.blit(floor_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y))  
+    render_switches(board, old_pos_player) 
+    render_player(board)  
+    pygame.display.update()  
 
 
-# Return True = Win, False = Not Win Yet
 def is_win():
     for stone in stones:
         if stone not in switches_pos:
@@ -280,53 +330,97 @@ def is_win():
     return True
 
 def game_loop(board):
+    global is_running, is_paused, is_calculating, player_pos, stones
+
     pygame.init()
     pygame.display.set_caption("Ares's Adventure")
 
-    render_map(board) # Create the map for first time
-    pygame.display.update()  # Update the display
+    render_map(board)  
+    render_buttons()
+    pygame.display.update()
 
-    # Create the problem instance
+    # Show "Calculating" while starting calculations
+    is_calculating = True 
+    calculation_thread = threading.Thread(target=calculation_animation)
+    calculation_thread.start()
+
+    # Initialize state
     initial_state = {
-        'player_pos': player_pos,
-        'stones': stones
+        'player_pos': player_pos.copy(),
+        'stones': stones.copy()
     }
 
+    # Run A* algorithm
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
+    way_player_go = a_star(problem)
 
-    # Use algorithm
-    start = time.time()
-    way_player_go = ucs(problem)
-    end = time.time()
-    elapsed = end - start
-    print(f'Time taken: {elapsed:.6f} seconds')
-    # print(way_player_go)
+    is_calculating = False  
+    calculation_thread.join() 
+    
+    # Delete calculating
+    pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 20, 145, 30))  # Xóa dòng "Calculating"
 
-    if way_player_go:
-        movement(board, way_player_go) # Move the player
-    else:
-        text = font.render("THERE NO NO WAY TO WIN!", True, (0, 0, 0))  # Render the text
-        text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
-        screen.blit(text, text_rect)  # Draw the text on the screen
+    # Update text to "Finish"
+    render_status_text("Finish")
+    pygame.display.update()
 
-    running = True
-    while running:
-        pygame.display.update()  # Update the display
+    # Game control variables
+    move_index = 0
+    is_running = True
+    is_paused = True
 
-        # Event handling
+    # Main game loop
+    while is_running:
+        # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
-            
-        ## Test for winning ##
-            if is_win():
-                text = font.render("YOU WIN!", True, (0, 0, 0))  # Render the text
-                text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))  # Center the text
-                screen.blit(text, text_rect)  # Draw the text on the screen
-        
+                is_running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = event.pos
+                if START_BUTTON_POSITION[0] <= mouse_pos[0] <= START_BUTTON_POSITION[0] + BUTTON_WIDTH and \
+                    START_BUTTON_POSITION[1] <= mouse_pos[1] <= START_BUTTON_POSITION[1] + BUTTON_HEIGHT:
+                    is_paused = False
+                elif PAUSE_BUTTON_POSITION[0] <= mouse_pos[0] <= PAUSE_BUTTON_POSITION[0] + BUTTON_WIDTH and \
+                    PAUSE_BUTTON_POSITION[1] <= mouse_pos[1] <= PAUSE_BUTTON_POSITION[1] + BUTTON_HEIGHT:
+                    is_paused = True
+                elif RESET_BUTTON_POSITION[0] <= mouse_pos[0] <= RESET_BUTTON_POSITION[0] + BUTTON_WIDTH and \
+                    RESET_BUTTON_POSITION[1] <= mouse_pos[1] <= RESET_BUTTON_POSITION[1] + BUTTON_HEIGHT:
+                    move_index = 0
+                    player_pos = initial_state['player_pos'].copy()
+                    stones = initial_state['stones'].copy()
+                    is_paused = True
+                    render_map(board)
+                    render_buttons()
+                    pygame.display.update()
+
+        if is_win():
+            text = font.render("YOU WIN!", True, (0, 0, 0))
+            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            screen.blit(text, text_rect)
+
+        if not is_paused and move_index < len(way_player_go):
+            movement(board, way_player_go[move_index])
+            move_index += 1
+
+        if not way_player_go:
+            text = font.render("THERE IS NO WAY TO WIN!", True, (0, 0, 0))
+            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            screen.blit(text, text_rect)
+
+        if is_calculating:
+            render_status_text("Calculating")
+        else:
+            render_status_text("Finish")
+
+        render_buttons()
+        pygame.display.update()
+
     pygame.quit()
 
 
+
+
 # Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(standard_input_board_path, 'input17.txt'))
+map = get_board(os.path.join(standard_input_board_path, 'input01.txt'))
 game_loop(map)
+
