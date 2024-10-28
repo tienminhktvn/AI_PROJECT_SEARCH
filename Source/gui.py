@@ -269,12 +269,12 @@ def calculation_animation():
         time.sleep(0.5) 
 
 def render_cost_step(current_step, cost_list):
-    # Xóa vùng cũ của "Step" và "Cost" bằng cách vẽ một hình chữ nhật đen
-    pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 60, 140, 60))  # Điều chỉnh kích thước và vị trí nếu cần
+
+    pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 60, 140, 60))  
 
     # Render Step count
     step_text = font.render(f"Step: {current_step}", True, (255, 255, 255))
-    screen.blit(step_text, (SCREEN_WIDTH - 150, 60))  # Điều chỉnh vị trí nếu cần
+    screen.blit(step_text, (SCREEN_WIDTH - 150, 60))  
 
     # Render Cost
     current_cost = cost_list[current_step] if current_step < len(cost_list) else 0
