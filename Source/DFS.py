@@ -12,7 +12,6 @@ def dfs(problem):
     
     frontier.append(start_node)
     
-    total_weight_pushed = 0 
     nodes_generated = 0 
 
     while frontier:
