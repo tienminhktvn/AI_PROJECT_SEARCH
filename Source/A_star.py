@@ -11,7 +11,6 @@ def a_star(problem):
     frontier = [(0, start_node)]
     explored = {start_node: (0, None)}
     
-    total_weight_pushed = 0 
     nodes_generated = 0  
 
     while frontier:

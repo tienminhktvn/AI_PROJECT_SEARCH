@@ -246,8 +246,11 @@ def save_output_to_file(input_file_name, algorythm_name, solution_path, total_we
         file.write(f"Steps: {num_steps}, Weight: {total_weight_pushed}, Node: {nodes_generated}, Time (ms): {total_time_ms:.2f}, Memory (MB): {peak_memory_mb:.2f}\n")
         file.write(''.join(generate_action_string(solution_path, problem)) + '\n')
         
+cost_list = [0]
 
 def compute_total_weight_pushed(solution_path, start_node):
+    global cost_list
+    
     total_weight_pushed = 0
     state = start_node.state.copy()  
     stones = state['stones'].copy() 
@@ -257,7 +260,9 @@ def compute_total_weight_pushed(solution_path, start_node):
 
         if tuple(action) in stones:
             stone_pos = tuple(action)
-            total_weight_pushed += stones[stone_pos]
+            total_weight_pushed += stones[stone_pos] + 1
+            
+            cost_list.append(total_weight_pushed)
             
             new_stone_pos = list(stone_pos)
 
@@ -271,6 +276,9 @@ def compute_total_weight_pushed(solution_path, start_node):
                 new_stone_pos[0] += 1
 
             stones[tuple(new_stone_pos)] = stones.pop(stone_pos)
+        else:
+            total_weight_pushed += 1
+            cost_list.append(total_weight_pushed)
 
         state['player_pos'] = tuple(action) 
 

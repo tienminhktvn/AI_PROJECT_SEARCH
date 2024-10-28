@@ -251,7 +251,6 @@ def render_buttons():
     screen.blit(reset_text, (RESET_BUTTON_POSITION[0] + 10, RESET_BUTTON_POSITION[1] + 10))
     
 def render_status_text(text):
-    """Hàm hiển thị dòng trạng thái ở góc màn hình."""
     status_text = font.render(text, True, (255, 255, 255))  
     screen.blit(status_text, (SCREEN_WIDTH - 150, 20)) 
     
@@ -269,6 +268,18 @@ def calculation_animation():
         dot_count = (dot_count + 1) % (max_dots + 1) 
         time.sleep(0.5) 
 
+def render_cost_step(current_step, cost_list):
+    # Xóa vùng cũ của "Step" và "Cost" bằng cách vẽ một hình chữ nhật đen
+    pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 60, 140, 60))  # Điều chỉnh kích thước và vị trí nếu cần
+
+    # Render Step count
+    step_text = font.render(f"Step: {current_step}", True, (255, 255, 255))
+    screen.blit(step_text, (SCREEN_WIDTH - 150, 60))  # Điều chỉnh vị trí nếu cần
+
+    # Render Cost
+    current_cost = cost_list[current_step] if current_step < len(cost_list) else 0
+    cost_text = font.render(f"Cost: {current_cost}", True, (255, 255, 255))
+    screen.blit(cost_text, (SCREEN_WIDTH - 150, 100))
 
 def movement(board, node):
     x = 0
@@ -352,13 +363,13 @@ def game_loop(board):
 
     # Run A* algorithm
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
-    way_player_go = a_star(problem)
+    way_player_go = ucs(problem)
 
     is_calculating = False  
     calculation_thread.join() 
     
     # Delete calculating
-    pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 20, 145, 30))  # Xóa dòng "Calculating"
+    pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 20, 145, 30))  
 
     # Update text to "Finish"
     render_status_text("Finish")
@@ -400,6 +411,7 @@ def game_loop(board):
 
         if not is_paused and move_index < len(way_player_go):
             movement(board, way_player_go[move_index])
+            render_cost_step(move_index, utils.cost_list)
             move_index += 1
 
         if not way_player_go:
@@ -413,6 +425,7 @@ def game_loop(board):
             render_status_text("Finish")
 
         render_buttons()
+        render_cost_step(move_index, utils.cost_list)
         pygame.display.update()
 
     pygame.quit()
