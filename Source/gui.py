@@ -159,17 +159,17 @@ def render_map(board):
                     stones[(j, i)] = weights[weight_index]  
                     weight_index += 1  
                 render_stones(board)
-                
+
+            # Switches
+            if board[i][j] in ['.', '+']:
+                screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
+                switches_pos.append((j, i))
+
             # Player
-            if board[i][j] == '@':
+            if board[i][j] in ['@', '+']:
                 player_pos[0] = j
                 player_pos[1] = i
                 render_player(board)
-
-            # Switches
-            if board[i][j] == '.':
-                screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
-                switches_pos.append((j, i))
 
 # Render player
 def render_player(board):
