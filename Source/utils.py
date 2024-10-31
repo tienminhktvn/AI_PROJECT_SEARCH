@@ -99,36 +99,22 @@ class Problem:
     
 
     def heuristic(self, state):
+        # Retrieve the positions of stones and switches
         stones = list(state['stones'].keys())
-        switches = self.switches_pos.copy()
-        total_distance = 0
+        switches = self.switches_pos
+        total_cost = 0
 
-        # Sort stones by weight in descending order (heavy stones first)
-        stones.sort(key=lambda s: state['stones'][s], reverse=True)
-
-        # Track assigned switches to avoid reusing
-        assigned_switches = set()
-
+        # For each stone, find the switch that gives the minimum cost (distance * weight)
         for stone in stones:
             stone_weight = state['stones'][stone]
-            min_distance = float('inf')
-            closest_switch = None
+            
+            # Calculate costs to each switch and take the minimum
+            min_cost = min(manhattan_distance(stone, switch) * stone_weight for switch in switches)
+            
+            # Accumulate the smallest cost for each stone
+            total_cost += min_cost
 
-            # Find the closest unassigned switch for the current stone
-            for switch in switches:
-                if switch not in assigned_switches:
-                    distance = manhattan_distance(stone, switch) * stone_weight
-                    if distance < min_distance:
-                        min_distance = distance
-                        closest_switch = switch
-
-            # Update total distance and mark the switch as assigned
-            if closest_switch:
-                assigned_switches.add(closest_switch)
-                total_distance += min_distance
-
-        return total_distance
-
+        return total_cost
 
 
 def child_node(problem, node, action, use_heuristic=False):
