@@ -468,7 +468,7 @@ def game_loop(board):
             move_index += 1
 
         if not way_player_go:
-            text = font.render("THERE IS NO WAY TO WIN!", True, (0, 0, 0))
+            text = font.render("THERE IS NO WAY TO WIN!", True, (255, 255, 255))
             text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
             screen.blit(text, text_rect)
 
