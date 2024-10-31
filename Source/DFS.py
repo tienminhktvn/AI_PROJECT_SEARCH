@@ -1,6 +1,7 @@
 from utils import *
 
 def dfs(problem,output_content):
+
     start_node = Node(problem.initial_state)
     algorithm_name = 'DFS'
 
@@ -24,6 +25,7 @@ def dfs(problem,output_content):
 
         for action in problem.actions(node.state):
             child = child_node(problem, node, action)
+            nodes_generated += 1
 
             if child not in explored and child not in frontier:
                 if problem.goal_test(child.state):

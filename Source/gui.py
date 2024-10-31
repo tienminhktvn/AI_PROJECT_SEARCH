@@ -95,9 +95,6 @@ is_running = False
 is_paused = False
 is_calculating = True
 
-#Algorithm mode
-algorithm_mode="UCS" #UCS is default algorithm
-
 def get_IndentX_IndentY(board):
     # Get the width and height of the map input
     width = len(board[0])
@@ -228,28 +225,36 @@ BUTTON_HEIGHT = 50
 
 # Button position
 START_BUTTON_POSITION = (50, 50)  
-PAUSE_BUTTON_POSITION = (50, 110) 
-RESET_BUTTON_POSITION = (50, 170) 
+PAUSE_BUTTON_POSITION = (200, 50)  
+RESET_BUTTON_POSITION = (350, 50)
 
 def render_buttons():
     pygame.draw.rect(screen, (0, 255, 0), (START_BUTTON_POSITION[0], START_BUTTON_POSITION[1], BUTTON_WIDTH, BUTTON_HEIGHT))
     start_text = font.render("Start", True, (0, 0, 0))
     screen.blit(start_text, (START_BUTTON_POSITION[0] + 10, START_BUTTON_POSITION[1] + 10))
 
-
     pygame.draw.rect(screen, (255, 255, 0), (PAUSE_BUTTON_POSITION[0], PAUSE_BUTTON_POSITION[1], BUTTON_WIDTH, BUTTON_HEIGHT))
     pause_text = font.render("Pause", True, (0, 0, 0))
     screen.blit(pause_text, (PAUSE_BUTTON_POSITION[0] + 10, PAUSE_BUTTON_POSITION[1] + 10))
 
-
     pygame.draw.rect(screen, (255, 0, 0), (RESET_BUTTON_POSITION[0], RESET_BUTTON_POSITION[1], BUTTON_WIDTH, BUTTON_HEIGHT))
     reset_text = font.render("Reset", True, (0, 0, 0))
     screen.blit(reset_text, (RESET_BUTTON_POSITION[0] + 10, RESET_BUTTON_POSITION[1] + 10))
+
     
 def render_status_text(text):
-    status_text = font.render(text, True, (255, 255, 255))  
-    screen.blit(status_text, (SCREEN_WIDTH - 150, 20)) 
+    pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 20, 145, 30))
+
+    status_text = font.render(text, True, (255, 255, 255))
+    screen.blit(status_text, (SCREEN_WIDTH - 150, 20))
+
+def render_algorithm_name(name):
     
+    pygame.draw.rect(screen, (0, 0, 0), (550, 50, 200, 30))  
+    algorithm_text = font.render(name, True, (255, 255, 255))  
+    screen.blit(algorithm_text, (550, 70))
+    
+
 def calculation_animation():
     global is_calculating
     dot_count = 0
@@ -261,10 +266,11 @@ def calculation_animation():
         render_status_text(loading_text)  # Function to render text on the screen
         pygame.display.update()
         
-        dot_count = (dot_count + 1) % (max_dots + 1) 
+        dot_count = (dot_count + 1) % (max_dots + 1)
+        
         time.sleep(0.5) 
 
-def render_cost_step(current_step, cost_list):
+def render_cost_step(current_step, final_cost):
 
     pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 60, 140, 60))  
 
@@ -273,7 +279,8 @@ def render_cost_step(current_step, cost_list):
     screen.blit(step_text, (SCREEN_WIDTH - 150, 60))  
 
     # Render Cost
-    current_cost = cost_list[current_step] if current_step < len(cost_list) else 0
+    current_cost = final_cost[current_step] if current_step < len(final_cost) else 0
+    
     cost_text = font.render(f"Cost: {current_cost}", True, (255, 255, 255))
     screen.blit(cost_text, (SCREEN_WIDTH - 150, 100))
 
@@ -347,7 +354,7 @@ def flash_rect(text, size, color1, color2, duration=0.5):
     screen.blit(TEXT,RECT)
 
 def game_loop(board):
-    global is_running, is_paused, is_calculating, player_pos, stones, algorithm_mode, output_content
+    global is_running, is_paused, is_calculating, player_pos, stones, algorithm_mode, output_content, cost_list, final_cost
     screen.fill("black")
     def notify_win():
         global is_running, is_paused, is_calculating, player_pos, stones
@@ -389,6 +396,7 @@ def game_loop(board):
 
     render_map(board) 
     render_buttons()
+    render_algorithm_name(utils.algorithm_mode)
     pygame.display.update()
 
     # Show "Calculating" while starting calculations
@@ -412,13 +420,13 @@ def game_loop(board):
     a_star_go=a_star(problem, output_content)
     save_output_to_file(current_map_path, output_content)
 
-    if algorithm_mode=='UCS':
+    if utils.algorithm_mode=='UCS':
         way_player_go=ucs_go
-    elif algorithm_mode=='BFS':
+    elif utils.algorithm_mode=='BFS':
         way_player_go=bfs_go
-    elif algorithm_mode=='DFS':
+    elif utils.algorithm_mode=='DFS':
         way_player_go=dfs_go
-    elif algorithm_mode=='A*':
+    elif utils.algorithm_mode=='A*':
         way_player_go=a_star_go
 
     is_calculating = False  
@@ -458,13 +466,14 @@ def game_loop(board):
                     is_paused = True
                     render_map(board)
                     render_buttons()
+                    
                     pygame.display.update()
 
         if is_win():
             notify_win()
         if not is_paused and move_index < len(way_player_go):
             movement(board, way_player_go[move_index])
-            render_cost_step(move_index, utils.cost_list)
+            
             move_index += 1
 
         if not way_player_go:
@@ -478,7 +487,7 @@ def game_loop(board):
             render_status_text("Finish")
 
         render_buttons()
-        render_cost_step(move_index, utils.cost_list)
+        render_cost_step(move_index, utils.final_cost)
         pygame.display.update()
 
     pygame.quit()
@@ -550,7 +559,7 @@ def map_choose():
         for index, mapName in enumerate(mapArr):
             mapText = f"MAP{index+1:02d}"
             MAP_NAME_BUTTON=Button(image=None,pos=(x_position,y_position)
-                     ,text_input=mapText,font=get_font(20),base_color="White",hovering_color="Green")
+                    ,text_input=mapText,font=get_font(20),base_color="White",hovering_color="Green")
             map_button_list.append(MAP_NAME_BUTTON)
             if (index+1)%15==0:
                 x_position+=x_gap
@@ -637,13 +646,13 @@ def algorithm_choose():
                 sys.exit()
             if event.type==pygame.MOUSEBUTTONDOWN:
                 if UCS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-                    algorithm_mode="UCS"
+                    utils.algorithm_mode="UCS"
                 if BFS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-                    algorithm_mode="BFS"
+                    utils.algorithm_mode="BFS"
                 if DFS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-                    algorithm_mode="DFS"
+                    utils.algorithm_mode="DFS"
                 if A_STAR_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-                    algorithm_mode="A*"
+                    utils.algorithm_mode="A*"
                 main_menu()
 
         pygame.display.update()

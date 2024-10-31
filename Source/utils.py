@@ -15,6 +15,9 @@ A state or initial_state is a dict of player_pos, stone's positions. For example
     }
 """
 
+#Algorithm mode
+algorithm_mode="UCS" #UCS is default algorithm
+final_cost=[]
 
 class Node:
     def __init__(self, state, parent=None, action=None, cost=0, heuristic=0, depth=0):
@@ -258,8 +261,10 @@ cost_list = [0]
 
 def compute_total_weight_pushed(solution_path, start_node):
     global cost_list
-    
+        
     total_weight_pushed = 0
+    total_weight_save = 0
+    
     state = start_node.state.copy()  
     stones = state['stones'].copy() 
 
@@ -268,9 +273,10 @@ def compute_total_weight_pushed(solution_path, start_node):
 
         if tuple(action) in stones:
             stone_pos = tuple(action)
-            total_weight_pushed += stones[stone_pos] + 1
+            total_weight_pushed += stones[stone_pos]
+            total_weight_save += stones[stone_pos] + 1
             
-            cost_list.append(total_weight_pushed)
+            cost_list.append(total_weight_save)
             
             new_stone_pos = list(stone_pos)
 
@@ -285,14 +291,16 @@ def compute_total_weight_pushed(solution_path, start_node):
 
             stones[tuple(new_stone_pos)] = stones.pop(stone_pos)
         else:
-            total_weight_pushed += 1
-            cost_list.append(total_weight_pushed)
+            total_weight_save += 1
+            cost_list.append(total_weight_save)
 
         state['player_pos'] = tuple(action) 
 
+    
     return total_weight_pushed
 
-def process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem,output_content):
+def process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem, output_content):
+    global final_cost, algorithm_mode, cost_list
     solution_path = solution(node)
     
     end_time = time.time()
@@ -305,8 +313,13 @@ def process_solution(node, start_time, start_node, algorithm_name, nodes_generat
     
     total_weight_pushed = compute_total_weight_pushed(solution_path, start_node)
     
+    if (algorithm_mode == algorithm_name):
+        final_cost = cost_list.copy()
+    
     output_content.append(algorithm_name)
     output_content.append(f"Steps: {num_steps}, Weight: {total_weight_pushed}, Node: {nodes_generated}, Time (ms): {total_time_ms:.2f}, Memory (MB): {peak_memory_mb:.2f}")
     output_content.append(''.join(generate_action_string(solution_path, problem)))
+    
+    cost_list = [0]
     
     return solution_path

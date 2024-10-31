@@ -1,9 +1,0 @@
-<<<<<<< HEAD
-UCS
-Steps: 25, Weight: 529, Node: 152263, Time (ms): 1896.98, Memory (MB): 37.26
-uulDldRRRRRRRRlullLLLLulD
-=======
-DFS
-Steps: 46, Weight: 158, Node: 0, Time (ms): 29.76, Memory (MB): 0.43
-dllddrUdllluRdrruUddlluRdrUluRUdddlluluuuurrdR
->>>>>>> b5c085888c3a628adaa4cf34ba508996eccc8e6c

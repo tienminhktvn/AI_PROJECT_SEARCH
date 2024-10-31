@@ -2,6 +2,7 @@ from utils import *
 
 # Uniform Cost Search (UCS) Algorithm
 def ucs(problem, output_content):
+    
     start_node = Node(problem.initial_state)
     algorithm_name = 'UCS'
 
