@@ -1,6 +1,6 @@
 from utils import *
 
-def dfs(problem):
+def dfs(problem,output_content):
     start_node = Node(problem.initial_state)
     algorithm_name = 'DFS'
 
@@ -18,7 +18,7 @@ def dfs(problem):
         node = frontier.pop()
 
         if problem.goal_test(node.state):
-            return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem)
+            return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem,output_content)
         
         explored.add(node)
 
@@ -27,7 +27,7 @@ def dfs(problem):
 
             if child not in explored and child not in frontier:
                 if problem.goal_test(child.state):
-                    return process_solution(child, start_time, start_node, algorithm_name, nodes_generated, problem)
+                    return process_solution(child, start_time, start_node, algorithm_name, nodes_generated, problem,output_content)
                 frontier.append(child)
     
     return None

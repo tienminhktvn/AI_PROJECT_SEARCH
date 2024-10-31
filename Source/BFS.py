@@ -1,6 +1,6 @@
 from utils import *
 
-def bfs(problem):
+def bfs(problem,output_content):
     start_node = Node(problem.initial_state)
     algorithm_name = 'BFS'
 
@@ -18,7 +18,7 @@ def bfs(problem):
         node = frontier.pop(0)
 
         if problem.goal_test(node.state):
-            return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem)
+            return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem,output_content)
         
         explored.add(node)
 
@@ -28,7 +28,7 @@ def bfs(problem):
 
             if child not in explored and child not in frontier:
                 if problem.goal_test(child.state):
-                    return process_solution(child, start_time, start_node, algorithm_name, nodes_generated, problem)
+                    return process_solution(child, start_time, start_node, algorithm_name, nodes_generated, problem,output_content)
                 frontier.append(child)
     
     return None
