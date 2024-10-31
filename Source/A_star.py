@@ -1,6 +1,6 @@
 from utils import *
 
-# A* Search (UCS) Algorithm
+# A* Search Algorithm
 def a_star(problem):
     start_node = Node(problem.initial_state)
     algorithm_name = 'A*'

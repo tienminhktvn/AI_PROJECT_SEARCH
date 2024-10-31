@@ -100,26 +100,35 @@ class Problem:
 
     def heuristic(self, state):
         stones = list(state['stones'].keys())
+        switches = self.switches_pos.copy()
         total_distance = 0
-        assigned_switches = []
+
+        # Sort stones by weight in descending order (heavy stones first)
+        stones.sort(key=lambda s: state['stones'][s], reverse=True)
+
+        # Track assigned switches to avoid reusing
+        assigned_switches = set()
 
         for stone in stones:
+            stone_weight = state['stones'][stone]
             min_distance = float('inf')
             closest_switch = None
 
-            # Find the closet switch for the stone
-            for switch in self.switches_pos:
+            # Find the closest unassigned switch for the current stone
+            for switch in switches:
                 if switch not in assigned_switches:
-                    distance = manhattan_distance(stone, switch) * state['stones'][stone]             
-
+                    distance = manhattan_distance(stone, switch) * stone_weight
                     if distance < min_distance:
                         min_distance = distance
                         closest_switch = switch
 
-            assigned_switches.append(closest_switch)
-            total_distance += min_distance 
+            # Update total distance and mark the switch as assigned
+            if closest_switch:
+                assigned_switches.add(closest_switch)
+                total_distance += min_distance
 
         return total_distance
+
 
 
 def child_node(problem, node, action, use_heuristic=False):

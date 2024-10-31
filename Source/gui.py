@@ -399,7 +399,7 @@ def game_loop(board):
 
     # Run A* algorithm
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
-    way_player_go = dfs(problem)
+    way_player_go = a_star(problem)
 
     is_calculating = False  
     calculation_thread.join() 
