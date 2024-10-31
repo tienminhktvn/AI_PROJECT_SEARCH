@@ -2,6 +2,7 @@ import os
 import pygame
 import threading
 import time
+import sys
 
 import utils
 from UCS import *
@@ -14,9 +15,9 @@ pygame.font.init()
 font = pygame.font.SysFont(None, 33)
 
 # Path
-tile_image_path = os.path.join('..', 'Assets', 'tileset.png')
-standard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
-hard_input_board_path = os.path.join(os.getcwd(), 'input', 'standard')
+tile_image_path = os.path.join("Assets/tileset.png")
+standard_input_board_path = os.path.join(os.getcwd(),'Source', 'input', 'standard')
+hard_input_board_path = os.path.join(os.getcwd(),'Source', 'input', 'hard')
 
 # Sceen set up (each block is 64 x 64 pixels)
 SCREEN_WIDTH = 18 * 64
@@ -25,6 +26,9 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Tile Set Image
 tileset_image = pygame.image.load(tile_image_path).convert_alpha()
+
+# Output content
+output_content=[]
 
 # Read an input board file
 def get_board(path):
@@ -91,6 +95,9 @@ is_running = False
 is_paused = False
 is_calculating = True
 
+#Algorithm mode
+algorithm_mode="UCS" #UCS is default algorithm
+
 def get_IndentX_IndentY(board):
     # Get the width and height of the map input
     width = len(board[0])
@@ -99,7 +106,6 @@ def get_IndentX_IndentY(board):
     indent_y = (SCREEN_HEIGHT - height * 64) / 2.0
 
     return indent_x, indent_y
-
 
 # Function to add a connection between nodes in graph
 def add_connection(board, graph, node, left_pos, up_pos, right_pos, down_pos):
@@ -121,15 +127,13 @@ def add_connection(board, graph, node, left_pos, up_pos, right_pos, down_pos):
         if (board[down_pos[1]][down_pos[0]] != '#'):
             graph[node].append(down_pos)
 
-
 # Render the map for the game
 def render_map(board):
     indent_x, indent_y = get_IndentX_IndentY(board)
     screen.fill((0, 0, 0)) 
     width = len(board[0])
     height = len(board)
-
-    weight_index = 0 
+    weight_index = 0
 
     for i in range(height):
         for j in range(width):
@@ -155,26 +159,22 @@ def render_map(board):
                     stones[(j, i)] = weights[weight_index]  
                     weight_index += 1  
                 render_stones(board)
-                
-            # Player
-            if board[i][j] == '@':
-                player_pos[0] = j
-                player_pos[1] = i
-                render_player(board)
 
             # Switches
-            if board[i][j] == '.':
+            if board[i][j] in ['.', '+']:
                 screen.blit(switch_place_img, (j * 64 + indent_x, i * 64 + indent_y))
                 switches_pos.append((j, i))
 
-
-
+            # Player
+            if board[i][j] in ['@', '+']:
+                player_pos[0] = j
+                player_pos[1] = i
+                render_player(board)
 
 # Render player
 def render_player(board):
     indent_x, indent_y = get_IndentX_IndentY(board)
     screen.blit(player_img, (player_pos[0] * 64 + indent_x, player_pos[1] * 64 + indent_y))
-
 
 # Render stones
 def render_stones(board):
@@ -205,7 +205,6 @@ def render_stones(board):
         text_rect = text.get_rect(center=stone_rect.center)
         screen.blit(text, text_rect)
 
-
 # Delay the move based on the weight of the stones
 def movement_delay(weight):
     if weight > 0 and weight < 30:
@@ -223,8 +222,6 @@ def render_switches(board,old_pos_player):
     if(tuple(old_pos_player) in switches_pos):
         screen.blit(switch_place_img, (old_pos_player[0] * 64 + indent_x, old_pos_player[1] * 64 + indent_y))
         
-        
-        
 # Button size
 BUTTON_WIDTH = 100
 BUTTON_HEIGHT = 50
@@ -235,7 +232,6 @@ PAUSE_BUTTON_POSITION = (50, 110)
 RESET_BUTTON_POSITION = (50, 170) 
 
 def render_buttons():
-
     pygame.draw.rect(screen, (0, 255, 0), (START_BUTTON_POSITION[0], START_BUTTON_POSITION[1], BUTTON_WIDTH, BUTTON_HEIGHT))
     start_text = font.render("Start", True, (0, 0, 0))
     screen.blit(start_text, (START_BUTTON_POSITION[0] + 10, START_BUTTON_POSITION[1] + 10))
@@ -332,7 +328,6 @@ def movement(board, node):
     render_player(board)  
     pygame.display.update()  
 
-
 def is_win():
     for stone in stones:
         if stone not in switches_pos:
@@ -340,13 +335,59 @@ def is_win():
     
     return True
 
+def flash_rect(text, size, color1, color2, duration=0.5):
+    current_time = time.time()
+    # Cứ mỗi nửa giây đổi màu giữa color1 và color2
+    if int(current_time * 2) % 2 == 0:
+        TEXT=get_font(size).render(text,True,color1)
+        RECT=TEXT.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+    else:
+        TEXT=get_font(size).render(text,True,color2)
+        RECT=TEXT.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+    screen.blit(TEXT,RECT)
+
 def game_loop(board):
-    global is_running, is_paused, is_calculating, player_pos, stones
+    global is_running, is_paused, is_calculating, player_pos, stones, algorithm_mode, output_content
+    screen.fill("black")
+    def notify_win():
+        global is_running, is_paused, is_calculating, player_pos, stones
+        nonlocal move_index
+        state=True
+        while state:
+            WIN_MOUSE_POS=pygame.mouse.get_pos()
+            RESTART_BUTTON=Button(image=None,pos=(SCREEN_WIDTH//2-120,SCREEN_HEIGHT//2+70)
+                            ,text_input="RESTART",font=get_font(30),base_color="White",hovering_color="Green")
+            MENU_BUTTON=Button(image=None,pos=(SCREEN_WIDTH//2+120,SCREEN_HEIGHT//2+70)
+                            ,text_input="MENU",font=get_font(30),base_color="White",hovering_color="Green")
+            for button in [RESTART_BUTTON,MENU_BUTTON]:
+                button.changeColor(WIN_MOUSE_POS)
+                button.update(screen)
+        
+            flash_rect('YOU WIN!',60,'White','Yellow')
+            for event in pygame.event.get():
+                if event.type==pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type==pygame.MOUSEBUTTONDOWN:
+                    if RESTART_BUTTON.checkForInput(WIN_MOUSE_POS):
+                        move_index = 0
+                        player_pos = initial_state['player_pos'].copy()
+                        stones = initial_state['stones'].copy()
+                        is_paused = True
+                        render_map(board)
+                        render_buttons()
+                        state=False
+                    if MENU_BUTTON.checkForInput(WIN_MOUSE_POS):
+                        main_menu()
+            pygame.display.update()
+    
+    # Reset để chạy map
+    player_pos=[0,0]
+    stones.clear()
+    switches_pos.clear()
+    cost_list = [0]
 
-    pygame.init()
-    pygame.display.set_caption("Ares's Adventure")
-
-    render_map(board)  
+    render_map(board) 
     render_buttons()
     pygame.display.update()
 
@@ -361,9 +402,24 @@ def game_loop(board):
         'stones': stones.copy()
     }
 
-    # Run A* algorithm
+    # Run algorithm
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
-    way_player_go = ucs(problem)
+
+    output_content.clear()
+    ucs_go=ucs(problem, output_content)
+    bfs_go=bfs(problem, output_content)
+    dfs_go=dfs(problem, output_content)
+    a_star_go=a_star(problem, output_content)
+    save_output_to_file(current_map_path, output_content)
+
+    if algorithm_mode=='UCS':
+        way_player_go=ucs_go
+    elif algorithm_mode=='BFS':
+        way_player_go=bfs_go
+    elif algorithm_mode=='DFS':
+        way_player_go=dfs_go
+    elif algorithm_mode=='A*':
+        way_player_go=a_star_go
 
     is_calculating = False  
     calculation_thread.join() 
@@ -405,17 +461,14 @@ def game_loop(board):
                     pygame.display.update()
 
         if is_win():
-            text = font.render("YOU WIN!", True, (0, 0, 0))
-            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            screen.blit(text, text_rect)
-
+            notify_win()
         if not is_paused and move_index < len(way_player_go):
             movement(board, way_player_go[move_index])
             render_cost_step(move_index, utils.cost_list)
             move_index += 1
 
         if not way_player_go:
-            text = font.render("THERE IS NO WAY TO WIN!", True, (0, 0, 0))
+            text = font.render("THERE IS NO WAY TO WIN!", True, (255, 255, 255))
             text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
             screen.blit(text, text_rect)
 
@@ -430,10 +483,214 @@ def game_loop(board):
 
     pygame.quit()
 
+current_map_directory=standard_input_board_path #default is standard
+current_map_path='input-01.txt' #input01 is default input
+map=get_board(os.path.join(current_map_directory,current_map_path))
+#Create MENU
+class Button():
+	def __init__(self, image, pos, text_input, font, base_color, hovering_color):
+		self.image = image
+		self.x_pos = pos[0]
+		self.y_pos = pos[1]
+		self.font = font
+		self.base_color, self.hovering_color = base_color, hovering_color
+		self.text_input = text_input
+		self.text = self.font.render(self.text_input, True, self.base_color)
+		if self.image is None:
+			self.image = self.text
+		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
 
+	def update(self, screen):
+		if self.image is not None:
+			screen.blit(self.image, self.rect)
+		screen.blit(self.text, self.text_rect)
 
+	def checkForInput(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			return True
+		return False
 
-# Run the command "python gui.py" to run the GUI
-map = get_board(os.path.join(standard_input_board_path, 'input01.txt'))
-game_loop(map)
+	def changeColor(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			self.text = self.font.render(self.text_input, True, self.hovering_color)
+		else:
+			self.text = self.font.render(self.text_input, True, self.base_color)
 
+BG = pygame.image.load("Assets/Background.png")
+def get_font(size): # Returns Press-Start-2P in the desired size
+    return pygame.font.Font("Assets/font.ttf", size)
+
+def getFilesName(mapDirectory):
+    mapArr=[]
+    for file_name in os.listdir(mapDirectory):
+        if file_name.endswith('.txt'):
+            mapArr.append(file_name)
+    return mapArr
+
+def map_choose():
+    global map, current_map_path
+    while True:
+        screen.fill("black")
+        screen.blit(BG,(0,0))
+        MAP_MOUSE_POS=pygame.mouse.get_pos()
+        
+        MAP_TEXT=get_font(60).render("CHOOSE MAP",True,"White")
+        MAP_RECT=MAP_TEXT.get_rect(center=(SCREEN_WIDTH//2,100))
+        screen.blit(MAP_TEXT,MAP_RECT)
+
+        mapArr = getFilesName(current_map_directory)
+
+        x_position=255
+        y_position=255
+        y_gap=30
+        x_gap=200
+        map_button_list=[]
+
+        for index, mapName in enumerate(mapArr):
+            mapText = f"MAP{index+1:02d}"
+            MAP_NAME_BUTTON=Button(image=None,pos=(x_position,y_position)
+                     ,text_input=mapText,font=get_font(20),base_color="White",hovering_color="Green")
+            map_button_list.append(MAP_NAME_BUTTON)
+            if (index+1)%15==0:
+                x_position+=x_gap
+                y_position=255
+                continue
+            y_position+=y_gap
+
+        for button in map_button_list:
+            button.changeColor(MAP_MOUSE_POS)
+            button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type==pygame.MOUSEBUTTONDOWN:
+                for index, button in enumerate(map_button_list):
+                    if button.checkForInput(MAP_MOUSE_POS):
+                        current_map_path=mapArr[index]
+                        map=get_board(os.path.join(current_map_directory, current_map_path))
+                        main_menu()
+
+        pygame.display.update()
+
+def mode_choose():
+    global current_map_directory
+    while True:
+        screen.fill("black")
+        screen.blit(BG,(0,0))
+        MODE_MOUSE_POS=pygame.mouse.get_pos()
+        
+        MODE_TEXT=get_font(60).render("CHOOSE MODE",True,"White")
+        MODE_RECT=MODE_TEXT.get_rect(center=(SCREEN_WIDTH//2,100))
+        screen.blit(MODE_TEXT,MODE_RECT)
+
+        STANDARD_BUTTON=Button(image=pygame.image.load('Assets/LongRect.png'),pos=(SCREEN_WIDTH//2, 325)
+                                ,text_input='STANDARD',font=get_font(50),base_color="White",hovering_color="Green")
+        HARD_BUTTON=Button(image=pygame.image.load('Assets/LongRect.png'),pos=(SCREEN_WIDTH//2, 475)
+                            ,text_input='HARD',font=get_font(50),base_color="White",hovering_color="Green")
+        for button in [STANDARD_BUTTON,HARD_BUTTON]:
+            button.changeColor(MODE_MOUSE_POS)
+            button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type==pygame.MOUSEBUTTONDOWN:
+                if STANDARD_BUTTON.checkForInput(MODE_MOUSE_POS):
+                    current_map_directory=standard_input_board_path
+                if HARD_BUTTON.checkForInput(MODE_MOUSE_POS):
+                    current_map_directory=hard_input_board_path
+                main_menu()
+
+        pygame.display.update()
+
+def algorithm_choose():
+    global algorithm_mode
+    while True:
+        screen.fill("black")
+        screen.blit(BG,(0,0))
+        ALGORITHM_MOUSE_POS=pygame.mouse.get_pos()
+
+        ALGORITHM_TEXT=get_font(60).render("CHOOSE ALGORITHM",True,"White")
+        ALGORITHM_RECT=ALGORITHM_TEXT.get_rect(center=(SCREEN_WIDTH//2,100))
+        screen.blit(ALGORITHM_TEXT,ALGORITHM_RECT)
+
+        UCS_BUTTON = Button(image=pygame.image.load("Assets/Rect.png"), pos=(SCREEN_WIDTH//2, 225), 
+                            text_input="UCS", font=get_font(50), base_color="White", hovering_color="Green")
+        BFS_BUTTON = Button(image=pygame.image.load("Assets/Rect.png"),pos=(SCREEN_WIDTH//2, 350), 
+                            text_input="BFS", font=get_font(50), base_color="White", hovering_color="Green")
+        DFS_BUTTON=Button(image=pygame.image.load("Assets/Rect.png"), pos=(SCREEN_WIDTH//2, 475), 
+                            text_input="DFS", font=get_font(50), base_color="White", hovering_color="Green")
+        A_STAR_BUTTON = Button(image=pygame.image.load("Assets/Rect.png"), pos=(SCREEN_WIDTH//2, 600), 
+                            text_input="A*", font=get_font(50), base_color="White", hovering_color="Green")
+        
+        for button in [UCS_BUTTON,BFS_BUTTON,DFS_BUTTON,A_STAR_BUTTON]:
+            button.changeColor(ALGORITHM_MOUSE_POS)
+            button.update(screen)
+        
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type==pygame.MOUSEBUTTONDOWN:
+                if UCS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
+                    algorithm_mode="UCS"
+                if BFS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
+                    algorithm_mode="BFS"
+                if DFS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
+                    algorithm_mode="DFS"
+                if A_STAR_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
+                    algorithm_mode="A*"
+                main_menu()
+
+        pygame.display.update()
+
+def main_menu():
+    global map, current_map_path
+    while True:
+        screen.blit(BG,(0,0))
+        MENU_MOUSE_POS=pygame.mouse.get_pos()
+        
+        MENU_TEXT = get_font(60).render("Ares's Adventure",True,"#b68f40")
+        MENU_RECT=MENU_TEXT.get_rect(center=(SCREEN_WIDTH//2,100))
+        PLAY_BUTTON = Button(image=pygame.image.load("Assets/Rect.png"), pos=(SCREEN_WIDTH//2, 220), 
+                            text_input="PLAY", font=get_font(50), base_color="White", hovering_color="Green")
+        MAP_BUTTON = Button(image=pygame.image.load("Assets/Rect.png"),pos=(SCREEN_WIDTH//2, 330), 
+                            text_input="MAP", font=get_font(50), base_color="White", hovering_color="Green")
+        MODE_BUTTON=Button(image=pygame.image.load("Assets/Rect.png"), pos=(SCREEN_WIDTH//2, 440), 
+                            text_input="MODE", font=get_font(50), base_color="White", hovering_color="Green")
+        ALGORITHM_BUTTON=Button(image=pygame.image.load("Assets/LongRect.png"), pos=(SCREEN_WIDTH//2, 550), 
+                            text_input="AlGORITHM", font=get_font(50), base_color="White", hovering_color="Green")
+        QUIT_BUTTON = Button(image=pygame.image.load("Assets/Rect.png"), pos=(SCREEN_WIDTH//2, 660), 
+                            text_input="QUIT", font=get_font(50), base_color="White", hovering_color="Green")
+        screen.blit(MENU_TEXT,MENU_RECT)
+
+        for button in [PLAY_BUTTON,MAP_BUTTON,MODE_BUTTON,ALGORITHM_BUTTON,QUIT_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type==pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    game_loop(map)
+                if MAP_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    map_choose()
+                if MODE_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    mode_choose()
+                if ALGORITHM_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    algorithm_choose()
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+                    sys.exit()
+        
+        pygame.display.update()
+
+pygame.init()
+pygame.display.set_caption("Ares's Adventure")
+main_menu()

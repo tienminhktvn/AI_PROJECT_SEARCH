@@ -100,26 +100,35 @@ class Problem:
 
     def heuristic(self, state):
         stones = list(state['stones'].keys())
+        switches = self.switches_pos.copy()
         total_distance = 0
-        assigned_switches = []
+
+        # Sort stones by weight in descending order (heavy stones first)
+        stones.sort(key=lambda s: state['stones'][s], reverse=True)
+
+        # Track assigned switches to avoid reusing
+        assigned_switches = set()
 
         for stone in stones:
+            stone_weight = state['stones'][stone]
             min_distance = float('inf')
             closest_switch = None
 
-            # Find the closet switch for the stone
-            for switch in self.switches_pos:
+            # Find the closest unassigned switch for the current stone
+            for switch in switches:
                 if switch not in assigned_switches:
-                    distance = manhattan_distance(stone, switch) * state['stones'][stone]             
-
+                    distance = manhattan_distance(stone, switch) * stone_weight
                     if distance < min_distance:
                         min_distance = distance
                         closest_switch = switch
 
-            assigned_switches.append(closest_switch)
-            total_distance += min_distance 
+            # Update total distance and mark the switch as assigned
+            if closest_switch:
+                assigned_switches.add(closest_switch)
+                total_distance += min_distance
 
         return total_distance
+
 
 
 def child_node(problem, node, action, use_heuristic=False):
@@ -227,10 +236,10 @@ def calculate_total_weight(solution_path, problem):
 
     return total_weight
 
-def save_output_to_file(input_file_name, algorythm_name, solution_path, total_weight_pushed, num_steps, nodes_generated, total_time_ms, peak_memory_mb, problem):
+def save_output_to_file(input_file_name, output_content):
     # Extract the suffix from the input file name (e.g., xx from inputxx.txt)
-    file_suffix = os.path.splitext(os.path.basename(input_file_name))[0].replace("input", "")
-    output_file_name = f"output{file_suffix}.txt"
+    file_suffix = os.path.splitext(os.path.basename(input_file_name))[0].replace("input-", "")
+    output_file_name = f"output-{file_suffix}.txt"
     
     # Create the output directory if it doesn't exist
     output_directory = "output"
@@ -242,9 +251,8 @@ def save_output_to_file(input_file_name, algorythm_name, solution_path, total_we
     
     # Write the results to the output file
     with open(output_file_path, 'w') as file:
-        file.write(algorythm_name + "\n")
-        file.write(f"Steps: {num_steps}, Weight: {total_weight_pushed}, Node: {nodes_generated}, Time (ms): {total_time_ms:.2f}, Memory (MB): {peak_memory_mb:.2f}\n")
-        file.write(''.join(generate_action_string(solution_path, problem)) + '\n')
+        for string in output_content:
+            file.write(string+'\n')
         
 cost_list = [0]
 
@@ -284,7 +292,7 @@ def compute_total_weight_pushed(solution_path, start_node):
 
     return total_weight_pushed
 
-def process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem):
+def process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem,output_content):
     solution_path = solution(node)
     
     end_time = time.time()
@@ -297,6 +305,8 @@ def process_solution(node, start_time, start_node, algorithm_name, nodes_generat
     
     total_weight_pushed = compute_total_weight_pushed(solution_path, start_node)
     
-    save_output_to_file('input02.txt', algorithm_name, solution_path, total_weight_pushed, num_steps, nodes_generated, total_time_ms, peak_memory_mb, problem)
-
+    output_content.append(algorithm_name)
+    output_content.append(f"Steps: {num_steps}, Weight: {total_weight_pushed}, Node: {nodes_generated}, Time (ms): {total_time_ms:.2f}, Memory (MB): {peak_memory_mb:.2f}")
+    output_content.append(''.join(generate_action_string(solution_path, problem)))
+    
     return solution_path
