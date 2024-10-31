@@ -99,19 +99,15 @@ class Problem:
     
 
     def heuristic(self, state):
-        # Retrieve the positions of stones and switches
         stones = list(state['stones'].keys())
         switches = self.switches_pos
         total_cost = 0
 
-        # For each stone, find the switch that gives the minimum cost (distance * weight)
         for stone in stones:
             stone_weight = state['stones'][stone]
             
-            # Calculate costs to each switch and take the minimum
             min_cost = min(manhattan_distance(stone, switch) * stone_weight for switch in switches)
             
-            # Accumulate the smallest cost for each stone
             total_cost += min_cost
 
         return total_cost
