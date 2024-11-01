@@ -18,7 +18,6 @@ def a_star(problem, output_content):
         current_cost, node = heapq.heappop(frontier)
 
         if problem.goal_test(node.state):
-            
             return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem, output_content)
 
         for action in problem.actions(node.state):

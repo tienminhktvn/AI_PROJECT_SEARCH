@@ -357,11 +357,7 @@ def flash_rect(text, size, color1, color2, duration=0.5):
     screen.blit(TEXT,RECT)
 
 def game_loop(board):
-<<<<<<< HEAD
-    global is_running, is_paused, is_calculating, player_pos, stones, algorithm_mode, output_content
-=======
     global is_running, is_paused, is_calculating, player_pos, stones, algorithm_mode, output_content, cost_list, final_cost
->>>>>>> c2f1ba170e08de085f709b736de7c897b95b4774
     screen.fill("black")
     def notify_win():
         global is_running, is_paused, is_calculating, player_pos, stones
@@ -427,15 +423,6 @@ def game_loop(board):
     a_star_go=a_star(problem, output_content)
     save_output_to_file(current_map_path, output_content)
 
-<<<<<<< HEAD
-    if algorithm_mode=='UCS':
-        way_player_go=ucs_go
-    elif algorithm_mode=='BFS':
-        way_player_go=bfs_go
-    elif algorithm_mode=='DFS':
-        way_player_go=dfs_go
-    elif algorithm_mode=='A*':
-=======
     if utils.algorithm_mode=='UCS':
         way_player_go=ucs_go
     elif utils.algorithm_mode=='BFS':
@@ -443,7 +430,6 @@ def game_loop(board):
     elif utils.algorithm_mode=='DFS':
         way_player_go=dfs_go
     elif utils.algorithm_mode=='A*':
->>>>>>> c2f1ba170e08de085f709b736de7c897b95b4774
         way_player_go=a_star_go
 
     is_calculating = False  
@@ -576,11 +562,7 @@ def map_choose():
         for index, mapName in enumerate(mapArr):
             mapText = f"MAP{index+1:02d}"
             MAP_NAME_BUTTON=Button(image=None,pos=(x_position,y_position)
-<<<<<<< HEAD
-                     ,text_input=mapText,font=get_font(20),base_color="White",hovering_color="Green")
-=======
                     ,text_input=mapText,font=get_font(20),base_color="White",hovering_color="Green")
->>>>>>> c2f1ba170e08de085f709b736de7c897b95b4774
             map_button_list.append(MAP_NAME_BUTTON)
             if (index+1)%15==0:
                 x_position+=x_gap
@@ -667,15 +649,6 @@ def algorithm_choose():
                 sys.exit()
             if event.type==pygame.MOUSEBUTTONDOWN:
                 if UCS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-<<<<<<< HEAD
-                    algorithm_mode="UCS"
-                if BFS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-                    algorithm_mode="BFS"
-                if DFS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-                    algorithm_mode="DFS"
-                if A_STAR_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
-                    algorithm_mode="A*"
-=======
                     utils.algorithm_mode="UCS"
                 if BFS_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
                     utils.algorithm_mode="BFS"
@@ -683,7 +656,6 @@ def algorithm_choose():
                     utils.algorithm_mode="DFS"
                 if A_STAR_BUTTON.checkForInput(ALGORITHM_MOUSE_POS):
                     utils.algorithm_mode="A*"
->>>>>>> c2f1ba170e08de085f709b736de7c897b95b4774
                 main_menu()
 
         pygame.display.update()
