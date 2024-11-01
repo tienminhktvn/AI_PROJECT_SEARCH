@@ -2,6 +2,7 @@ from utils import *
 
 # Uniform Cost Search (UCS) Algorithm
 def ucs(problem, output_content):
+    
     start_node = Node(problem.initial_state)
     algorithm_name = 'UCS'
 
@@ -16,7 +17,7 @@ def ucs(problem, output_content):
     while frontier:
         current_cost, node = heapq.heappop(frontier)
 
-        if problem.goal_test(node.state):  
+        if problem.goal_test(node.state):
             return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem, output_content)
 
         for action in problem.actions(node.state):

@@ -1,6 +1,6 @@
 from utils import *
 
-def bfs(problem,output_content):
+def bfs(problem, output_content):
     start_node = Node(problem.initial_state)
     algorithm_name = 'BFS'
 

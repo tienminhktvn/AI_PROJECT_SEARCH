@@ -2,7 +2,6 @@ from utils import *
 
 # A* Search Algorithm
 def a_star(problem, output_content):
-    print(f"heurstic: {problem.heuristic(problem.initial_state)}")
 
     start_node = Node(problem.initial_state)
     algorithm_name = 'A*'
