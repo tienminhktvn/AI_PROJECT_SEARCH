@@ -1,9 +1,7 @@
-# main.py
-
 import gui
 
 def main():
-    gui.map_init()
+    gui.main_menu()
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()

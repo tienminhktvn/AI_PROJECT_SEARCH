@@ -1,1 +1,1 @@
-libraries to install
+pygame==2.5.2
