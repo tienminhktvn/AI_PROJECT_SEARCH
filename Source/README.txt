@@ -4,7 +4,7 @@
 
 # Chạy những câu lệnh phía dưới để tiến hành chạy source code:
 
-pip install -r requirements.txt
+pip install -r .\Source\requirements.txt
 python .\Source\main.py
 
 

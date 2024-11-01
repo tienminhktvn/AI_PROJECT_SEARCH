@@ -14,7 +14,7 @@ This project implements search algorithms for finding solution to solve the Soko
    - Open a terminal and navigate to the project directory.
    - Run the following command to install required packages:
      ```
-     pip install -r requirements.txt
+     pip install -r .\Source\requirements.txt
      ```
 
 ## Running the Project
