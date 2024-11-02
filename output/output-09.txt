@@ -1,12 +1,12 @@
 UCS
-Steps: 6, Weight: 252, Node: 3865, Time (ms): 87.33, Memory (MB): 1.17
+Steps: 6, Weight: 252, Node: 3865, Time (ms): 107.02, Memory (MB): 1.17
 UdDDDL
 BFS
-Steps: 6, Weight: 252, Node: 179, Time (ms): 3.58, Memory (MB): 0.05
+Steps: 6, Weight: 252, Node: 179, Time (ms): 5.00, Memory (MB): 0.05
 UdDDDL
 DFS
-Steps: 12, Weight: 252, Node: 6178, Time (ms): 153.93, Memory (MB): 1.74
+Steps: 12, Weight: 252, Node: 6178, Time (ms): 192.97, Memory (MB): 1.74
 DDDuuuUddddL
 A*
-Steps: 9, Weight: 252, Node: 1638, Time (ms): 61.04, Memory (MB): 0.48
+Steps: 9, Weight: 252, Node: 1638, Time (ms): 83.03, Memory (MB): 0.48
 DDDLuruuU

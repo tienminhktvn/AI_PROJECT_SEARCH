@@ -1,6 +1,11 @@
 from utils import *
 
 def dfs(problem, output_content):
+    if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+        print("timeout in dfs")
+        return None
+    
+    print('calculating dfs')
     start_node = Node(problem.initial_state)
     algorithm_name = 'DFS'
 
@@ -15,6 +20,9 @@ def dfs(problem, output_content):
     nodes_generated = 0 
 
     while frontier:
+        if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+            return None
+        
         node = frontier.pop()
 
         if problem.goal_test(node.state):
