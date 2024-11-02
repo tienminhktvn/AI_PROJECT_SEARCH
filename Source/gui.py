@@ -1,6 +1,5 @@
 import os
 import pygame
-import threading
 import time
 import sys
 
@@ -29,6 +28,18 @@ tileset_image = pygame.image.load(tile_image_path).convert_alpha()
 
 # Output content
 output_content=[]
+
+stop_timeout_event = threading.Event()
+
+def time_limit_check(timeout_duration):
+    print('time thread start')
+    for _ in range(timeout_duration):
+        if stop_timeout_event.is_set():
+            print('Timeout thread stopped immediately')
+            return  # Thoát ngay khi cờ dừng được bật
+        time.sleep(1)
+    print('reach timeout')
+    utils.timeout_event.set()
 
 # Read an input board file
 def get_board(path):
@@ -357,8 +368,9 @@ def flash_rect(text, size, color1, color2, duration=0.5):
     screen.blit(TEXT,RECT)
 
 def game_loop(board):
-    global is_running, is_paused, is_calculating, player_pos, stones, algorithm_mode, output_content, cost_list, final_cost
+    global is_running, is_paused, is_calculating, player_pos, stones, algorithm_mode, output_content, cost_list, final_cost, timeout_reached
     screen.fill("black")
+    
     def notify_win():
         global is_running, is_paused, is_calculating, player_pos, stones
         nonlocal move_index
@@ -391,6 +403,28 @@ def game_loop(board):
                         main_menu()
             pygame.display.update()
     
+    def notify_timeout():
+        global is_running, is_paused, is_calculating, player_pos, stones
+        nonlocal move_index
+        state=True
+        while state:
+            WIN_MOUSE_POS=pygame.mouse.get_pos()
+            MENU_BUTTON=Button(image=None,pos=(SCREEN_WIDTH//2+120,SCREEN_HEIGHT//2+70)
+                            ,text_input="MENU",font=get_font(30),base_color="White",hovering_color="Green")
+            
+            MENU_BUTTON.changeColor(WIN_MOUSE_POS)
+            MENU_BUTTON.update(screen)
+        
+            flash_rect('TIMEOUT!',60,'White','Yellow')
+            for event in pygame.event.get():
+                if event.type==pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type==pygame.MOUSEBUTTONDOWN:
+                    if MENU_BUTTON.checkForInput(WIN_MOUSE_POS):
+                        main_menu()
+            pygame.display.update()
+            
     # Reset để chạy map
     player_pos=[0,0]
     stones.clear()
@@ -407,13 +441,19 @@ def game_loop(board):
     is_calculating = True 
     calculation_thread = threading.Thread(target=calculation_animation)
     calculation_thread.start()
+    
+    #Set timeout thread
+    utils.timeout_reached = False
+    timeout_duration = 20  # 1 minutes
+    timeout_thread = threading.Thread(target=time_limit_check, args=(timeout_duration,))
+    timeout_thread.start()
 
     # Initialize state
     initial_state = {
         'player_pos': player_pos.copy(),
         'stones': stones.copy()
     }
-
+    
     # Run algorithm
     problem = utils.Problem(initial_state, board, switches_pos, graph_way_nodes)
 
@@ -422,8 +462,22 @@ def game_loop(board):
     bfs_go=bfs(problem, output_content)
     dfs_go=dfs(problem, output_content)
     a_star_go=a_star(problem, output_content)
+    print("finish")
+    
+    for i in [ucs_go, bfs_go, dfs_go, a_star_go]:
+        print(i)
+        if i is None and utils.timeout_event.is_set():
+            timeout_thread.join()
+            is_calculating = False  
+            utils.timeout_event.clear()
+            calculation_thread.join()
+            notify_timeout()
+    
+    stop_timeout_event.set()
+    timeout_thread.join()
+    stop_timeout_event.clear()
     save_output_to_file(current_map_path, output_content)
-
+    
     if utils.algorithm_mode=='UCS':
         way_player_go=ucs_go
     elif utils.algorithm_mode=='BFS':
@@ -470,7 +524,7 @@ def game_loop(board):
                     is_paused = True
                     render_map(board)
                     render_buttons()
-                    
+                    render_algorithm_name(utils.algorithm_mode)
                     pygame.display.update()
 
         if is_win():

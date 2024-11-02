@@ -1,6 +1,11 @@
 from utils import *
 
 def bfs(problem, output_content):
+    if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+        print("timeout in bfs")
+        return None
+    
+    print('calculating bfs')
     start_node = Node(problem.initial_state)
     algorithm_name = 'BFS'
 
@@ -15,6 +20,9 @@ def bfs(problem, output_content):
     nodes_generated = 0  
 
     while frontier:
+        if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+            return None
+        
         node = frontier.pop(0)
 
         if problem.goal_test(node.state):

@@ -1,6 +1,7 @@
 import os
 import time
 import tracemalloc
+import threading
 import heapq
 
 """
@@ -18,6 +19,9 @@ A state or initial_state is a dict of player_pos, stone's positions. For example
 #Algorithm mode
 algorithm_mode="UCS" #UCS is default algorithm
 final_cost=[]
+
+#Timeout flag
+timeout_event = threading.Event()
 
 class Node:
     def __init__(self, state, parent=None, action=None, cost=0, heuristic=0, depth=0):

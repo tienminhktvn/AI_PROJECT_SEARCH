@@ -2,7 +2,11 @@ from utils import *
 
 # Uniform Cost Search (UCS) Algorithm
 def ucs(problem, output_content):
+    if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+        print("timeout in ucs")
+        return None
     
+    print('calculating ucs')
     start_node = Node(problem.initial_state)
     algorithm_name = 'UCS'
 
@@ -15,6 +19,9 @@ def ucs(problem, output_content):
     nodes_generated = 0  
 
     while frontier:
+        if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+            return None
+        
         current_cost, node = heapq.heappop(frontier)
 
         if problem.goal_test(node.state):

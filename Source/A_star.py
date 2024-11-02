@@ -2,7 +2,11 @@ from utils import *
 
 # A* Search Algorithm
 def a_star(problem, output_content):
-
+    if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+        print("timeout in a*")
+        return None
+    
+    print('calculating a*')
     start_node = Node(problem.initial_state)
     algorithm_name = 'A*'
 
@@ -15,6 +19,9 @@ def a_star(problem, output_content):
     nodes_generated = 0  
 
     while frontier:
+        if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+            return None
+        
         current_cost, node = heapq.heappop(frontier)
 
         if problem.goal_test(node.state):
