@@ -396,7 +396,8 @@ def game_loop(board):
     stones.clear()
     switches_pos.clear()
     cost_list = [0]
-
+    graph_way_nodes.clear()
+    
     render_map(board) 
     render_buttons()
     render_algorithm_name(utils.algorithm_mode)
@@ -588,7 +589,7 @@ def map_choose():
         pygame.display.update()
 
 def mode_choose():
-    global current_map_directory
+    global current_map_directory, current_map_path, map
     while True:
         screen.fill("black")
         screen.blit(BG,(0,0))
@@ -613,8 +614,12 @@ def mode_choose():
             if event.type==pygame.MOUSEBUTTONDOWN:
                 if STANDARD_BUTTON.checkForInput(MODE_MOUSE_POS):
                     current_map_directory=standard_input_board_path
+                    current_map_path="input-01.txt"
+                    map=get_board(os.path.join(current_map_directory,current_map_path))
                 if HARD_BUTTON.checkForInput(MODE_MOUSE_POS):
                     current_map_directory=hard_input_board_path
+                    current_map_path="input-06.txt"
+                    map=get_board(os.path.join(current_map_directory,current_map_path))
                 main_menu()
 
         pygame.display.update()
@@ -662,9 +667,6 @@ def algorithm_choose():
 
 def main_menu():
     global map, current_map_path
-    pygame.init()
-    pygame.display.set_caption("Ares's Adventure")
-
     while True:
         screen.blit(BG,(0,0))
         MENU_MOUSE_POS=pygame.mouse.get_pos()
