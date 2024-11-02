@@ -1,9 +1,15 @@
 from utils import *
 
 def dfs(problem, output_content):
+<<<<<<< HEAD
     if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
         print("timeout in dfs")
         return None
+=======
+    #Set timeout thread
+    timeout_thread = threading.Thread(target=time_limit_check)
+    timeout_thread.start()
+>>>>>>> 1658449 (time out for each algorithms)
     
     print('calculating dfs')
     start_node = Node(problem.initial_state)
@@ -21,11 +27,25 @@ def dfs(problem, output_content):
 
     while frontier:
         if timeout_event.is_set():  # Kiểm tra nếu event đã được đặt
+<<<<<<< HEAD
+=======
+            stop_timeout_event.set()
+            timeout_thread.join()
+            stop_timeout_event.clear()
+            timeout_event.clear()
+            output_content.append(algorithm_name)
+            output_content.append("Timeout")
+            print("timeout in dfs")
+>>>>>>> 1658449 (time out for each algorithms)
             return None
         
         node = frontier.pop()
 
         if problem.goal_test(node.state):
+            stop_timeout_event.set()
+            timeout_thread.join()
+            stop_timeout_event.clear()
+            timeout_event.clear()
             return process_solution(node, start_time, start_node, algorithm_name, nodes_generated, problem,output_content)
         
         explored.add(node)
@@ -36,6 +56,10 @@ def dfs(problem, output_content):
 
             if child not in explored and child not in frontier:
                 if problem.goal_test(child.state):
+                    stop_timeout_event.set()
+                    timeout_thread.join()
+                    stop_timeout_event.clear()
+                    timeout_event.clear()
                     return process_solution(child, start_time, start_node, algorithm_name, nodes_generated, problem,output_content)
                 frontier.append(child)
     
