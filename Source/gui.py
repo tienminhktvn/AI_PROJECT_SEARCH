@@ -465,7 +465,6 @@ def game_loop(board):
     print("finish")
     
     for i in [ucs_go, bfs_go, dfs_go, a_star_go]:
-        print(i)
         if i is None and utils.timeout_event.is_set():
             timeout_thread.join()
             is_calculating = False  
