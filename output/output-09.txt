@@ -1,5 +1,4 @@
 UCS
-<<<<<<< HEAD
 Steps: 6, Weight: 252, Node: 3865, Time (ms): 107.02, Memory (MB): 1.17
 UdDDDL
 BFS
@@ -10,16 +9,4 @@ Steps: 12, Weight: 252, Node: 6178, Time (ms): 192.97, Memory (MB): 1.74
 DDDuuuUddddL
 A*
 Steps: 9, Weight: 252, Node: 1638, Time (ms): 83.03, Memory (MB): 0.48
-=======
-Steps: 6, Weight: 252, Node: 3865, Time (ms): 56.56, Memory (MB): 1.17
-UdDDDL
-BFS
-Steps: 6, Weight: 252, Node: 179, Time (ms): 2.63, Memory (MB): 0.05
-UdDDDL
-DFS
-Steps: 12, Weight: 252, Node: 6178, Time (ms): 97.63, Memory (MB): 1.74
-DDDuuuUddddL
-A*
-Steps: 9, Weight: 252, Node: 1638, Time (ms): 41.99, Memory (MB): 0.48
->>>>>>> 1658449 (time out for each algorithms)
 DDDLuruuU
