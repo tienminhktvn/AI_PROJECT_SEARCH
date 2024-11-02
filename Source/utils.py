@@ -22,6 +22,19 @@ final_cost=[]
 
 #Timeout flag
 timeout_event = threading.Event()
+stop_timeout_event = threading.Event()
+timeout_duration = 15  # 15 seconds
+
+def time_limit_check():
+    print('time thread start')
+    for _ in range(timeout_duration):
+        if stop_timeout_event.is_set():
+            print('Timeout thread stopped immediately')
+            return  # Thoát ngay khi cờ dừng được bật
+        time.sleep(1)
+    print('reach timeout')
+    timeout_event.set()
+    
 
 class Node:
     def __init__(self, state, parent=None, action=None, cost=0, heuristic=0, depth=0):
