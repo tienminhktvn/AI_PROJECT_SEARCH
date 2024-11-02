@@ -1,4 +1,5 @@
 UCS
+<<<<<<< HEAD
 Steps: 91, Weight: 620, Node: 5604, Time (ms): 71.03, Memory (MB): 1.84
 luurrDrdLuullddddrrUULrddlluUUluurDrrDrdLddlluuUluRddddrruuLrddlluUUluurDDDrruuLrddlluluurD
 BFS
@@ -10,3 +11,16 @@ luurrDrdLuullddddrrUULrddlluUUluurDDDuurrDrdLddllUUUluRddddrruuLrddlluUUluurDDDr
 A*
 Steps: 91, Weight: 620, Node: 6208, Time (ms): 137.79, Memory (MB): 1.82
 luurrDrdLuullddddrrUULrddlluUUluurDrrDrdLddlluuUluRddddrruuLrddlluUUluurDDDrruuLrddlluluurD
+=======
+Steps: 22, Weight: 69, Node: 14930, Time (ms): 1005.13, Memory (MB): 3.75
+lddRRdrrruurrrrddllLLL
+BFS
+Steps: 22, Weight: 69, Node: 13024, Time (ms): 2005.64, Memory (MB): 3.31
+lddRRdrruurrrrrddllLLL
+DFS
+Steps: 834, Weight: 1443, Node: 62199, Time (ms): 4017.11, Memory (MB): 17.18
+dlddrrrrrRRRllluurrrrdrdLruuulldllulldddlluLdrrrrrrRllluurrrrdrdLLrruuulldllulldddllllUdrrrrrrRRllluurrrrdrdLruuulldllulldddlluluulldRddrrrrrrrRllluurrrrdrdLruuulldllulllllDldRdrrrrrrRllluurrrrdrdLLrruuulldllulldddllluRdrrrrRRllluurrrrdrdLruuulldllulldddlUdrrrrRllluurrrrdrdLLLrrruuulldllulllDrddlluRdrrRRRllluurrrrdrdLruuulldllulldlddrUdrrrRllluurrrrdrdLruuulldllullldRddrrrRllluluRRRRurDrddLUdLrruuulldllulldddrrRlluurrrurrdLddLLrrruuullldRurDrddlllLrrrUdlllLrrrrruuulldllullddldRururrrurrdLLrddlllLrrrrruuulldLrrddlllluuRRurrrdddlllllLrrrrrruuullldRurDrddllllllLrrrrrrUdlllluurrrurrdLLrddlllluuulldddLrrrrrrrruuulldLrrddlllluuRulllllddldRRRRRRRlluururrrdddLrruuulldLrrddlLrrruuulldlLrrrddllLrrrruuulldllulDrrrrddlllLLrUdrrrrruuulldllLddlLrrrrrrruuulldllullDrddllulldRRRUdRlluuurDrrrrrddllLrrrruuulldllldLdlUdlluuurrDurrdrrrrddlllLL
+A*
+Steps: 25, Weight: 69, Node: 1493, Time (ms): 1000.54, Memory (MB): 0.33
+rrrrrdrrrddllLLLulldlluRR
+>>>>>>> 1658449 (time out for each algorithms)

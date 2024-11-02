@@ -1,0 +1,10 @@
+UCS
+Steps: 29, Weight: 170, Node: 419862, Time (ms): 12069.48, Memory (MB): 97.01
+lllllllllURRRRRlllllluRRRRRRR
+BFS
+Timeout
+DFS
+Timeout
+A*
+Steps: 29, Weight: 170, Node: 11652, Time (ms): 1000.66, Memory (MB): 30.19
+lllllllllURRRRRlllllluRRRRRRR

@@ -489,6 +489,10 @@ def game_loop(board):
     is_calculating = False  
     calculation_thread.join() 
     
+    if way_player_go == None:
+        notify_timeout()
+        
+    
     # Delete calculating
     pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH - 150, 20, 145, 30))  
 
